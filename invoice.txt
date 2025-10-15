@@ -1,0 +1,35 @@
+# TODO: Implement "Create Invoice" Feature
+
+This plan outlines the steps to add the functionality for creating an invoice from a job.
+
+## 1. Add "Create Invoice" Button
+
+- **Location:** Add a new "Create Invoice" button to the `client/src/pages/JobDetailPage.tsx` file.
+- **Visibility:** This button should ideally only be visible for jobs with a status like 'Completed'.
+
+## 2. Implement Button Click Logic
+
+When the "Create Invoice" button is clicked, the following client-side logic will run:
+
+- **Step A: Fetch Job Data**
+  - Get the complete job object for the current job ID.
+  - We need two key pieces of data from this object:
+    1. The `servicePrice` (the base price for the service).
+    2. The `partsProcured` field (which is a JSON string).
+
+- **Step B: Calculate Total Amount**
+  - Parse the `partsProcured` JSON string into an array of part objects.
+  - Calculate the total cost of all parts by summing up (`quantity` * `price`) for each part in the array.
+  - Calculate the grand total by adding the `servicePrice` and the total parts cost together.
+
+- **Step C: Create the Invoice via API**
+  - Call the `POST /api/invoices` endpoint.
+  - Send a request body containing the `jobId` and the calculated grand total (as `totalAmount`).
+
+- **Step D: Handle Success**
+  - After the API call is successful and the invoice is created, navigate the user to the page for the newly created invoice (e.g., `/invoices/:newInvoiceId`).
+
+## 3. Backend Status
+
+- No backend changes are required.
+- The existing `GET /api/jobs/:id` and `POST /api/invoices` endpoints are sufficient to implement this feature.

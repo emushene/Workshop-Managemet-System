@@ -1,0 +1,138 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
+import { getInvoice, createPayment } from '../services/api';
+import PaymentModal from '../components/pos/PaymentModal';
+
+interface Invoice {
+  id: number;
+  dateCreated: string;
+  customerName: string;
+  serviceDescription: string;
+  totalAmount: number;
+}
+
+const InvoiceDetailPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Fetch invoice on mount or when id changes
+  useEffect(() => {
+    const fetchInvoice = async () => {
+      setLoading(true);
+      try {
+        const response = await getInvoice(Number(id));
+        setInvoice(response.data.data);
+      } catch (err) {
+        setError('Failed to fetch invoice');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInvoice();
+  }, [id]);
+
+  // Open payment modal if URL contains /generate
+  useEffect(() => {
+    if (location.pathname.includes('/generate') && invoice) {
+      setIsPaymentModalOpen(true);
+    }
+  }, [location.pathname, invoice]);
+
+  const handlePaymentSuccess = async (paymentDetails: any) => {
+    if (!invoice) return;
+    try {
+      await createPayment({
+        invoiceId: invoice.id,
+        amount: invoice.totalAmount,
+        paymentMethod: paymentDetails.paymentMethod,
+      });
+      setIsPaymentModalOpen(false);
+      navigate(`/invoices/${invoice.id}`);
+    } catch (error) {
+      console.error('Failed to create payment', error);
+    }
+  };
+
+  if (loading) return <div className="p-4">Loading...</div>;
+  if (error) return <div className="p-4 text-red-500">{error}</div>;
+  if (!invoice) return <div className="p-4">Invoice not found.</div>;
+
+  return (
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Invoice #{invoice.id}</h1>
+        <Link
+          to={`/invoices/${id}/print`}
+          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+        >
+          Print Invoice
+        </Link>
+      </div>
+
+      <div className="bg-white shadow-md rounded-lg p-6 print-container">
+        <div className="print-header mb-4">
+          <h2 className="text-2xl font-bold">Workshop Pro</h2>
+          <p>123 Workshop Lane, Mechanicville, 12345</p>
+        </div>
+
+        <div className="print-info mb-4">
+          <p>
+            <strong>Invoice Date:</strong>{' '}
+            {invoice.dateCreated ? new Date(invoice.dateCreated).toLocaleDateString() : 'N/A'}
+          </p>
+          <p>
+            <strong>Invoice ID:</strong> {invoice.id}
+          </p>
+        </div>
+
+        <div className="print-bill-to mb-4">
+          <h3 className="text-xl font-bold mb-2">Bill To:</h3>
+          <p>{invoice.customerName ?? 'N/A'}</p>
+        </div>
+
+        <div className="print-table">
+          <table className="min-w-full leading-normal">
+            <thead>
+              <tr>
+                <th className="text-left">Description</th>
+                <th className="text-right">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="text-left">{invoice.serviceDescription ?? ''}</td>
+                <td className="text-right">
+                  R{invoice.totalAmount != null ? invoice.totalAmount.toFixed(2) : '0.00'}
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td className="text-right">Total:</td>
+                <td className="text-right">
+                  R{invoice.totalAmount != null ? invoice.totalAmount.toFixed(2) : '0.00'}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      {isPaymentModalOpen && invoice && (
+        <PaymentModal
+          isOpen={isPaymentModalOpen}
+          onClose={() => setIsPaymentModalOpen(false)}
+          onPaymentSuccess={handlePaymentSuccess}
+          totalAmount={invoice.totalAmount}
+        />
+      )}
+    </div>
+  );
+};
+
+export default InvoiceDetailPage;

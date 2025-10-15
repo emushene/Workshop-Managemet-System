@@ -1,0 +1,12 @@
+# Top-level dependencies
+/node_modules
+
+# Dependencies in sub-directories
+server/node_modules
+client/node_modules
+
+# Environment variables
+.env
+server/.env
+client/.env
+# Add any other large or unnecessary folders/files here
