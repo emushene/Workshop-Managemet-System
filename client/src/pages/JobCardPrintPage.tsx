@@ -93,8 +93,8 @@ const JobCardPrintPage: React.FC = () => {
     const parts = job.partsProcured ? JSON.parse(job.partsProcured) : [];
 
     return (
-        <div className="p-5">
-            <div className="bg-white p-8 mx-auto shadow-md print:p-0 print:shadow-none" style={{ maxWidth: '80mm', fontFamily: 'monospace', fontSize: '10px' }}>
+        <div className="p-5 print-preview-page">
+            <div className="printable-area bg-white p-8 mx-auto shadow-md print:p-0 print:shadow-none" style={{ maxWidth: '80mm', fontFamily: 'monospace', fontSize: '10px' }}>
                 <div className="text-center mb-4">
                     <h1 className="text-lg font-bold">Job Card #{job.id}</h1>
                     <div className="text-xs">

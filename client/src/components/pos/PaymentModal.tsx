@@ -15,11 +15,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, invoiceId,
 
   const totalPaid = useMemo(() => payments.reduce((acc, p) => acc + p.amount, 0), [payments]);
   const remainingBalance = useMemo(() => totalAmount - totalPaid, [totalAmount, totalPaid]);
+  const change = useMemo(() => (totalPaid > totalAmount ? totalPaid - totalAmount : 0), [totalAmount, totalPaid]);
 
   const addPayment = () => {
     const amount = parseFloat(currentAmount);
     if (!amount || amount <= 0) return alert('Enter a valid amount');
-    if (amount > remainingBalance) return alert('Cannot pay more than remaining balance');
 
     setPayments([...payments, { method: currentMethod, amount }]);
     setCurrentAmount('');
@@ -75,10 +75,18 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, invoiceId,
             <span>Total Paid:</span>
             <span>{totalPaid.toFixed(2)} ZAR</span>
           </div>
-          <div className="flex justify-between text-lg font-semibold mt-2 border-t pt-2">
-            <span>Remaining:</span>
-            <span>{remainingBalance.toFixed(2)} ZAR</span>
-          </div>
+          {change > 0 && (
+            <div className="flex justify-between text-lg text-blue-600 font-bold mt-2 border-t pt-2">
+                <span>Change:</span>
+                <span>{change.toFixed(2)} ZAR</span>
+            </div>
+          )}
+          {remainingBalance > 0 && (
+            <div className="flex justify-between text-lg font-semibold mt-2 border-t pt-2">
+                <span>Remaining:</span>
+                <span>{remainingBalance.toFixed(2)} ZAR</span>
+            </div>
+          )}
         </div>
 
         <div className="mb-4">

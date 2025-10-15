@@ -24,12 +24,15 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route element={<ProtectedRoute />}>
+            {/* Print routes are now outside of the MainLayout */}
+            <Route path="/jobs/:id/print" element={<JobCardPrintPage />} />
+            <Route path="/invoices/:id/print" element={<InvoicePrintPage />} />
+
             <Route element={<MainLayout />}>
               <Route path="/" element={<HomePage />} />
               <Route path="/jobs" element={<JobsDashboard />} />
               <Route path="/jobs/new" element={<NewJobPage />} />
               <Route path="/jobs/:id" element={<JobDetailPage />} />
-              <Route path="/jobs/:id/print" element={<JobCardPrintPage />} />
               <Route path="/customers" element={<CustomerPage />} />
               <Route path="/inventory" element={<InventoryPage />} />
               <Route path="/service-item-parts" element={<ServiceItemPartsPage />} />
@@ -37,7 +40,6 @@ export default function App() {
               <Route path="/invoices" element={<InvoicePage />} />
               <Route path="/invoices/:id" element={<InvoiceDetailPage />} />
               <Route path="/invoices/generate/:id" element={<InvoiceDetailPage />} />
-              <Route path="/invoices/:id/print" element={<InvoicePrintPage />} />
               <Route path="/admin" element={<AdminDashboard />} />
             </Route>
           </Route>

@@ -15,6 +15,7 @@ interface Job {
   id: number;
   customerName: string;
   itemDescription: string;
+  serviceDescription: string;
   status: string;
   invoiceStatus?: string;
 }
@@ -111,7 +112,7 @@ const JobsDashboard: React.FC = () => {
   const columns = useMemo<ColumnDef<Job>[]>(() => [
     { accessorKey: 'id', header: 'Job ID' },
     { accessorKey: 'customerName', header: 'Customer' },
-    { accessorKey: 'itemDescription', header: 'Item Description' },
+    { accessorKey: 'serviceDescription', header: 'Part' },
     {
         accessorKey: 'status',
         header: 'Job Status',
@@ -199,7 +200,7 @@ const JobsDashboard: React.FC = () => {
           </thead>
           <tbody>
             {table.getRowModel().rows.map(row => (
-              <tr key={row.id} className="hover:bg-gray-50">
+              <tr key={row.id} className={`${statusColors[row.original.status] || 'bg-white'} hover:bg-gray-200 hover:bg-opacity-50`}>
                 {row.getVisibleCells().map(cell => (
                   <td key={cell.id} className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

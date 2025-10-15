@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
+import React, { useState, useEffect } from 'react';
 import CustomerSelection from '../components/pos/CustomerSelection';
 import ProductSelection from '../components/pos/ProductSelection';
 import Cart from '../components/pos/Cart';
@@ -12,12 +11,10 @@ const POSPage: React.FC = () => {
     const [cart, setCart] = useState<any[]>([]);
     const [selectedCustomer, setSelectedCustomer] = useState('');
     const [discount, setDiscount] = useState(0);
-    const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
     const [lastSale, setLastSale] = useState<any>(null);
-
-    const receiptRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         fetchProducts();
@@ -101,9 +98,19 @@ const POSPage: React.FC = () => {
         }
     };
 
-    const handlePrint = useReactToPrint({
-        content: () => receiptRef,
-    });
+    const handlePrint = () => {
+        const receiptElement = document.getElementById('receipt-to-print');
+        if (receiptElement) {
+            const printWindow = window.open('', '_blank', 'height=600,width=800');
+            printWindow?.document.write('<html><head><title>Print Receipt</title></head><body>');
+            printWindow?.document.write(receiptElement.innerHTML);
+            printWindow?.document.write('</body></html>');
+            printWindow?.document.close();
+            printWindow?.focus(); // Necessary for some browsers
+            printWindow?.print();
+            printWindow?.close();
+        }
+    };
 
     const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const total = subtotal - discount;
@@ -119,8 +126,10 @@ const POSPage: React.FC = () => {
                         <button onClick={handlePrint} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded">Print Receipt</button>
                     )}
                 </div>}
+            
+            {/* This div is hidden from view but used for printing */}
             <div style={{ display: 'none' }}>
-                {lastSale && <div ref={receiptRef}><Receipt saleData={lastSale} /></div>}
+                {lastSale && <div id="receipt-to-print"><Receipt saleData={lastSale} /></div>}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">

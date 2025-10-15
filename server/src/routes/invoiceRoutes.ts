@@ -31,7 +31,7 @@ router.get('/', (req: express.Request, res: express.Response) => {
     });
   } else {
     // Get all invoices
-    const sql = "SELECT Invoices.*, Jobs.itemDescription, Jobs.serviceDescription, Customers.name as customerName FROM Invoices JOIN Jobs ON Invoices.jobId = Jobs.id JOIN Customers ON Jobs.customerId = Customers.id";
+    const sql = "SELECT i.*, c.name as customerName, j.itemDescription, j.serviceDescription FROM Invoices i JOIN Customers c ON i.customerId = c.id LEFT JOIN Jobs j ON i.jobId = j.id";
     db.all(sql, [], (err: Error, rows: any[]) => {
       if (err) {
         res.status(400).json({ "error": err.message });
@@ -66,26 +66,44 @@ router.get('/:id', (req: express.Request, res: express.Response) => {
 });
 
 // POST a new invoice from a job
-router.post('/', (req: express.Request, res: express.Response) => {
+router.post('/', async (req: express.Request, res: express.Response) => {
   const { jobId, totalAmount, status } = req.body;
   if (!jobId || !totalAmount) {
     res.status(400).json({ "error": "Missing required fields: jobId and totalAmount" });
     return;
   }
 
-  const dateCreated = new Date().toISOString();
-  const sql = 'INSERT INTO Invoices (jobId, totalAmount, dateCreated, status) VALUES (?, ?, ?, ?)';
-  const params = [jobId, totalAmount, dateCreated, status || 'Unpaid'];
-  db.run(sql, params, function (this: any, err: Error) {
-    if (err) {
-      res.status(400).json({ "error": err.message });
-      return;
-    }
-    res.status(201).json({
-      "message": "success",
-      "data": { id: this.lastID, jobId, totalAmount, dateCreated, status: status || 'Unpaid' }
+  try {
+    // Get customerId from the job
+    const job: any = await new Promise((resolve, reject) => {
+        db.get("SELECT customerId FROM Jobs WHERE id = ?", [jobId], (err, row) => {
+            if (err) reject(err);
+            else resolve(row);
+        });
     });
-  });
+
+    if (!job || !job.customerId) {
+        return res.status(404).json({ "message": "Job or associated customer not found" });
+    }
+
+    const customerId = job.customerId;
+    const dateCreated = new Date().toISOString();
+    const sql = 'INSERT INTO Invoices (jobId, customerId, totalAmount, dateCreated, status) VALUES (?, ?, ?, ?, ?)';
+    const params = [jobId, customerId, totalAmount, dateCreated, status || 'Unpaid'];
+
+    db.run(sql, params, function (this: any, err: Error) {
+      if (err) {
+        res.status(400).json({ "error": err.message });
+        return;
+      }
+      res.status(201).json({
+        "message": "success",
+        "data": { id: this.lastID, jobId, customerId, totalAmount, dateCreated, status: status || 'Unpaid' }
+      });
+    });
+  } catch (error: any) {
+      res.status(500).json({ "error": error.message });
+  }
 });
 
 // PUT update an existing invoice

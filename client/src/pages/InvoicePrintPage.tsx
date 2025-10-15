@@ -66,9 +66,9 @@ const InvoicePrintPage: React.FC = () => {
   const job = invoice.job;
 
   return (
-    <div className="p-5">
+    <div className="p-5 print-preview-page">
       <div
-        className="bg-white p-8 mx-auto shadow-md print:p-0 print:shadow-none"
+        className="printable-area bg-white p-8 mx-auto shadow-md print:p-0 print:shadow-none"
         style={{ maxWidth: '80mm', fontFamily: 'monospace', fontSize: '10px' }}
       >
         {/* Header */}
