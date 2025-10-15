@@ -1,13 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { getInventory, createInventoryItem, updateInventoryItem, deleteInventoryItem } from '../services/api';
+import { 
+    useReactTable, 
+    getCoreRowModel, 
+    getFilteredRowModel, 
+    getPaginationRowModel, 
+    flexRender, 
+    type ColumnDef 
+} from '@tanstack/react-table';
+
+interface InventoryItem {
+    id: number;
+    name: string;
+    quantity: number;
+    price: number;
+}
 
 const InventoryPage: React.FC = () => {
-  const [inventory, setInventory] = useState<any[]>([]);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentItem, setCurrentItem] = useState<any>(null);
   const [formData, setFormData] = useState({ name: '', quantity: '', price: '' });
+  const [globalFilter, setGlobalFilter] = useState('');
 
   useEffect(() => {
     fetchInventory();
@@ -17,7 +33,7 @@ const InventoryPage: React.FC = () => {
     try {
       setLoading(true);
       const response = await getInventory();
-      setInventory(response.data.data);
+      setInventory(response.data.data || []);
       setError('');
     } catch (err) {
       setError('Failed to fetch inventory');
@@ -67,6 +83,38 @@ const InventoryPage: React.FC = () => {
     }
   };
 
+  const columns = useMemo<ColumnDef<InventoryItem>[]>(() => [
+    { accessorKey: 'name', header: 'Name' },
+    { accessorKey: 'quantity', header: 'Quantity' },
+    {
+        accessorKey: 'price',
+        header: 'Price',
+        cell: ({ row }) => `R${row.original.price.toFixed(2)}`
+    },
+    {
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => (
+            <div className="text-right">
+                <button onClick={() => handleOpenModal(row.original)} className="text-indigo-600 hover:text-indigo-900 mr-4">Edit</button>
+                <button onClick={() => handleDelete(row.original.id)} className="text-red-600 hover:text-red-900">Delete</button>
+            </div>
+        )
+    }
+  ], []);
+
+  const table = useReactTable({
+    data: inventory,
+    columns,
+    state: {
+        globalFilter,
+    },
+    onGlobalFilterChange: setGlobalFilter,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  });
+
   if (loading) return <div className="p-4">Loading...</div>;
   if (error) return <div className="p-4 text-red-500">{error}</div>;
 
@@ -78,30 +126,62 @@ const InventoryPage: React.FC = () => {
           Add Item
         </button>
       </div>
+
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search inventory..."
+          value={globalFilter}
+          onChange={(e) => setGlobalFilter(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+        />
+      </div>
+
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <table className="min-w-full leading-normal">
           <thead>
-            <tr>
-              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
-              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Quantity</th>
-              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Price</th>
-              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100"></th>
-            </tr>
+            {table.getHeaderGroups().map(headerGroup => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map(header => (
+                  <th key={header.id} className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                  </th>
+                ))}
+              </tr>
+            ))}
           </thead>
           <tbody>
-            {inventory.map(item => (
-              <tr key={item.id}>
-                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.name}</td>
-                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.quantity}</td>
-                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">R{item.price.toFixed(2)}</td>
-                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm text-right">
-                  <button onClick={() => handleOpenModal(item)} className="text-indigo-600 hover:text-indigo-900 mr-4">Edit</button>
-                  <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900">Delete</button>
-                </td>
+            {table.getRowModel().rows.map(row => (
+              <tr key={row.id}>
+                {row.getVisibleCells().map(cell => (
+                  <td key={cell.id} className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="py-4 flex items-center justify-between">
+        <div className="flex-1 flex justify-between sm:hidden">
+            <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>Previous</button>
+            <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>Next</button>
+        </div>
+        <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+                <p className="text-sm text-gray-700">
+                    Showing page <span className="font-medium">{table.getState().pagination.pageIndex + 1}</span> of <span className="font-medium">{table.getPageCount()}</span>
+                </p>
+            </div>
+            <div>
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Previous</button>
+                    <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Next</button>
+                </nav>
+            </div>
+        </div>
       </div>
 
       {isModalOpen && (

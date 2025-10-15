@@ -1,13 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { getServiceItemParts, createServiceItemPart, updateServiceItemPart, deleteServiceItemPart } from '../services/api';
+import { 
+    useReactTable, 
+    getCoreRowModel, 
+    getFilteredRowModel, 
+    getPaginationRowModel, 
+    flexRender, 
+    type ColumnDef 
+} from '@tanstack/react-table';
+
+interface ServiceItemPart {
+    id: number;
+    part_name: string;
+    category: string;
+    common_services: string;
+    price: number;
+    description: string;
+}
 
 const ServiceItemPartsPage: React.FC = () => {
-  const [serviceItemParts, setServiceItemParts] = useState<any[]>([]);
+  const [serviceItemParts, setServiceItemParts] = useState<ServiceItemPart[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentServiceItemPart, setCurrentServiceItemPart] = useState<any>(null);
   const [formData, setFormData] = useState({ part_name: '', category: '', common_services: '', price: '', description: '' });
+  const [globalFilter, setGlobalFilter] = useState('');
 
   useEffect(() => {
     fetchServiceItemParts();
@@ -17,7 +35,7 @@ const ServiceItemPartsPage: React.FC = () => {
     try {
       setLoading(true);
       const response = await getServiceItemParts();
-      setServiceItemParts(response.data.data);
+      setServiceItemParts(response.data.data || []);
       setError('');
     } catch (err) {
       setError('Failed to fetch service item parts');
@@ -72,6 +90,40 @@ const ServiceItemPartsPage: React.FC = () => {
     }
   };
 
+  const columns = useMemo<ColumnDef<ServiceItemPart>[]>(() => [
+    { accessorKey: 'part_name', header: 'Part Name' },
+    { accessorKey: 'category', header: 'Category' },
+    { accessorKey: 'common_services', header: 'Common Services' },
+    {
+        accessorKey: 'price',
+        header: 'Price',
+        cell: ({ row }) => `R${row.original.price.toFixed(2)}`
+    },
+    { accessorKey: 'description', header: 'Description' },
+    {
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => (
+            <div className="text-right">
+                <button onClick={() => handleOpenModal(row.original)} className="text-indigo-600 hover:text-indigo-900 mr-4">Edit</button>
+                <button onClick={() => handleDelete(row.original.id)} className="text-red-600 hover:text-red-900">Delete</button>
+            </div>
+        )
+    }
+  ], []);
+
+  const table = useReactTable({
+    data: serviceItemParts,
+    columns,
+    state: {
+        globalFilter,
+    },
+    onGlobalFilterChange: setGlobalFilter,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  });
+
   if (loading) return <div className="p-4">Loading...</div>;
   if (error) return <div className="p-4 text-red-500">{error}</div>;
 
@@ -83,34 +135,62 @@ const ServiceItemPartsPage: React.FC = () => {
           Add Service Item Part
         </button>
       </div>
+
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search parts..."
+          value={globalFilter}
+          onChange={(e) => setGlobalFilter(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+        />
+      </div>
+
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <table className="min-w-full leading-normal">
           <thead>
-            <tr>
-              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Part Name</th>
-              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Category</th>
-              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Common Services</th>
-              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Price</th>
-              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Description</th>
-              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100"></th>
-            </tr>
+            {table.getHeaderGroups().map(headerGroup => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map(header => (
+                  <th key={header.id} className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                  </th>
+                ))}
+              </tr>
+            ))}
           </thead>
           <tbody>
-            {serviceItemParts.map(item => (
-              <tr key={item.id}>
-                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.part_name}</td>
-                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.category}</td>
-                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.common_services}</td>
-                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">R{item.price.toFixed(2)}</td>
-                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">{item.description}</td>
-                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm text-right">
-                  <button onClick={() => handleOpenModal(item)} className="text-indigo-600 hover:text-indigo-900 mr-4">Edit</button>
-                  <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900">Delete</button>
-                </td>
+            {table.getRowModel().rows.map(row => (
+              <tr key={row.id}>
+                {row.getVisibleCells().map(cell => (
+                  <td key={cell.id} className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="py-4 flex items-center justify-between">
+        <div className="flex-1 flex justify-between sm:hidden">
+            <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>Previous</button>
+            <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>Next</button>
+        </div>
+        <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+                <p className="text-sm text-gray-700">
+                    Showing page <span className="font-medium">{table.getState().pagination.pageIndex + 1}</span> of <span className="font-medium">{table.getPageCount()}</span>
+                </p>
+            </div>
+            <div>
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Previous</button>
+                    <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">Next</button>
+                </nav>
+            </div>
+        </div>
       </div>
 
       {isModalOpen && (
