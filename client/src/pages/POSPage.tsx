@@ -3,12 +3,11 @@ import { useReactToPrint } from 'react-to-print';
 import CustomerSelection from '../components/pos/CustomerSelection';
 import ProductSelection from '../components/pos/ProductSelection';
 import Cart from '../components/pos/Cart';
-import PaymentModal from '../components/pos/PaymentModal';
+import PaymentModal from '../../sample/PaymentModal';
 import Receipt from '../components/pos/Receipt';
-import { getInventory, createSale, getCustomers } from '../services/api';
+import { getInventory, createSale } from '../services/api';
 
 const POSPage: React.FC = () => {
-    const [customers, setCustomers] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
     const [cart, setCart] = useState<any[]>([]);
     const [selectedCustomer, setSelectedCustomer] = useState('');
@@ -21,18 +20,8 @@ const POSPage: React.FC = () => {
     const receiptRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        fetchCustomers();
         fetchProducts();
     }, []);
-
-    const fetchCustomers = async () => {
-        try {
-            const response = await getCustomers();
-            setCustomers(response.data.data || []);
-        } catch (err) {
-            setError('Failed to fetch customers');
-        }
-    };
 
     const fetchProducts = async () => {
         try {
@@ -168,10 +157,7 @@ const POSPage: React.FC = () => {
                     isOpen={isPaymentModalOpen}
                     onClose={() => setPaymentModalOpen(false)}
                     totalAmount={total}
-                    onPaymentSuccess={async (paymentDetails: any) => {
-                        // You can customize this handler as needed
-                        setMessage('Payment successful!');
-                    }}
+                    onCompleteSale={handleCompleteSale}
                 />
             )}
         </div>

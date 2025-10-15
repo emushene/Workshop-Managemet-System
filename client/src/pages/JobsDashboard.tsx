@@ -15,7 +15,6 @@ const JobsDashboard: React.FC = () => {
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedJob, setSelectedJob] = useState<any | null>(null);
   const [invoice, setInvoice] = useState<any | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
@@ -72,7 +71,6 @@ const JobsDashboard: React.FC = () => {
       const response = await getInvoiceByJobId(job.id);
       if (response.data.data) {
         setInvoice(response.data.data);
-        setSelectedJob(job);
         setIsPaymentModalOpen(true);
       } else {
         setError('No invoice found for this job. Please create one from the Job Details page.');
@@ -93,7 +91,6 @@ const JobsDashboard: React.FC = () => {
         type: paymentDetails.type
       });
       setIsPaymentModalOpen(false);
-      setSelectedJob(null);
       setInvoice(null);
       // Re-fetch jobs to show the updated invoice status
       fetchJobs();
@@ -179,6 +176,7 @@ const JobsDashboard: React.FC = () => {
       <PaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
+        invoiceId={invoice.id}
         onPaymentSuccess={handlePaymentSuccess}
         totalAmount={invoice.totalAmount ?? 0}
       />

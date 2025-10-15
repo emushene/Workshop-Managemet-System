@@ -129,6 +129,7 @@ const InvoiceDetailPage: React.FC = () => {
           onClose={() => setIsPaymentModalOpen(false)}
           onPaymentSuccess={handlePaymentSuccess}
           totalAmount={invoice.totalAmount}
+          invoiceId={invoice.id}
         />
       )}
     </div>

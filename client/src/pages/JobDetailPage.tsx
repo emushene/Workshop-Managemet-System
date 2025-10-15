@@ -21,7 +21,7 @@ const JobDetailPage: React.FC = () => {
 
   // Setup the print handler - Fixed: Use callback returning .current
   const handlePrint = useReactToPrint({
-  content: () => printRef.current,  // Return the ref object as required by react-to-print types
+  content: () => (printRef.current as any),  // Return the ref object as required by react-to-print types
   documentTitle: `JobCard-${id}`,
 });
 
