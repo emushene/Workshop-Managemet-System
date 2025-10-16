@@ -91,7 +91,17 @@ const JobCardPrintPage: React.FC = () => {
         return <p className="p-5">Loading job card...</p>;
     }
 
-    const parts = job.partsProcured ? JSON.parse(job.partsProcured) : [];
+    const parts: any[] = []; // Initialize as empty array
+    if (job.partsProcured) {
+        try {
+            const parsed = JSON.parse(job.partsProcured);
+            if (Array.isArray(parsed)) {
+                parts.push(...parsed);
+            }
+        } catch (parseError) {
+            console.error("Failed to parse partsProcured:", parseError);
+        }
+    }
 
     return (
         <div className="p-5 print-preview-page">

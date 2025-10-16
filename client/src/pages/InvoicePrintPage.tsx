@@ -10,13 +10,6 @@ interface Part {
   price: number;
 }
 
-interface Job {
-  customerName: string;
-  serviceDescription: string;
-  servicePrice: number;
-  partsProcured?: string; // JSON string
-}
-
 interface Invoice {
   id: number;
   dateCreated: string;
@@ -25,6 +18,15 @@ interface Invoice {
   totalAmount?: number;
   discountAmount?: number;
   amountPaid?: number;
+  partsProcured?: string; // Add partsProcured directly to Invoice interface
+  serviceDescription?: string; // Add serviceDescription directly to Invoice interface
+  servicePrice?: number; // Add servicePrice directly to Invoice interface
+}
+
+interface Job {
+  customerName: string;
+  // serviceDescription: string; // Remove from Job interface as it's now on Invoice
+  // servicePrice: number;     // Remove from Job interface as it's now on Invoice
 }
 
 const InvoicePrintPage: React.FC = () => {
@@ -59,12 +61,19 @@ const InvoicePrintPage: React.FC = () => {
   if (error) return <p className="p-5 text-red-500">{error}</p>;
   if (!invoice) return <p className="p-5">Loading invoice...</p>;
 
-  // Safely parse partsProcured
-  const parts: Part[] = invoice.job?.partsProcured
-    ? JSON.parse(invoice.job.partsProcured)
-    : [];
+  const parts: Part[] = []; // Initialize as empty array
+  if (invoice.partsProcured) {
+    try {
+      const parsed = JSON.parse(invoice.partsProcured);
+      if (Array.isArray(parsed)) {
+        parts.push(...parsed);
+      }
+    } catch (parseError) {
+      console.error("Failed to parse partsProcured:", parseError);
+    }
+  }
 
-  const job = invoice.job;
+  // const job = invoice.job; // Remove job constant as serviceDescription and servicePrice are now on invoice
 
   return (
     <div className="p-5 print-preview-page">
@@ -84,7 +93,7 @@ const InvoicePrintPage: React.FC = () => {
         <div className="mb-4 border-b border-dashed pb-2">
           <h3 className="font-bold text-xs mb-1">Customer Details</h3>
           <p className="text-xs">
-            <strong>Name:</strong> {job?.customerName ?? 'N/A'}
+            <strong>Name:</strong> {invoice.job?.customerName ?? 'N/A'}
           </p>
         </div>
 
@@ -114,10 +123,10 @@ const InvoicePrintPage: React.FC = () => {
             </thead>
             <tbody>
               <tr>
-                <td>{job?.serviceDescription ?? ''}</td>
+                <td>{invoice.serviceDescription ?? ''}</td>
                 <td style={{ textAlign: 'right' }}>1</td>
-                <td style={{ textAlign: 'right' }}>{(job?.servicePrice ?? 0).toFixed(2)}</td>
-                <td style={{ textAlign: 'right' }}>{(job?.servicePrice ?? 0).toFixed(2)}</td>
+                <td style={{ textAlign: 'right' }}>{(invoice.servicePrice ?? 0).toFixed(2)}</td>
+                <td style={{ textAlign: 'right' }}>{(invoice.servicePrice ?? 0).toFixed(2)}</td>
               </tr>
 
               {parts.map((part, index) => (
