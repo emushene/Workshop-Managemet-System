@@ -17,6 +17,7 @@ const JobCardPrintPage: React.FC = () => {
     // Automatically print when the component has loaded the job data
     useEffect(() => {
         if (job) {
+            console.log('Printing job:', job);
             // We add a small timeout to allow content to render before printing
             setTimeout(() => {
                 window.print();

@@ -39,6 +39,7 @@ const InvoicePrintPage: React.FC = () => {
   // Automatically print when the component has loaded the invoice data
   useEffect(() => {
     if (invoice) {
+        console.log('Printing invoice:', invoice);
         // We add a small timeout to allow content to render before printing
         setTimeout(() => {
             window.print();
@@ -91,14 +92,14 @@ const InvoicePrintPage: React.FC = () => {
                     <p style={{ textAlign: 'center', margin: '0' }}>Tel: 010 335 0492</p>
                     <p style={{ textAlign: 'center', margin: '0' }}>www.masihmotoreng.co.za</p>
                     <hr style={{ borderTop: '1px dashed black', margin: '10px 0' }} />
-                    <h1 className="text-lg font-bold">Job Card #{job.id}</h1>
+                    <h1 className="text-lg font-bold">Invoice #{invoice.id}</h1>
                 </div>
 
         {/* Customer Details */}
         <div className="mb-4 border-b border-dashed pb-2">
           <h3 className="font-bold text-xs mb-1">Customer Details</h3>
           <p className="text-xs">
-            <strong>Name:</strong> {invoice.job?.customerName ?? 'N/A'}
+            <strong>Name:</strong> {invoice.customerName ?? 'N/A'}
           </p>
         </div>
 
@@ -127,15 +128,17 @@ const InvoicePrintPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>{invoice.serviceDescription ?? ''}</td>
-                <td style={{ textAlign: 'right' }}>1</td>
-                <td style={{ textAlign: 'right' }}>{(invoice.servicePrice ?? 0).toFixed(2)}</td>
-                <td style={{ textAlign: 'right' }}>{(invoice.servicePrice ?? 0).toFixed(2)}</td>
-              </tr>
+              {invoice.services?.map((service: any, index: number) => (
+                <tr key={`service-${index}`}>
+                  <td>{service.part_name}</td>
+                  <td style={{ textAlign: 'right' }}>1</td>
+                  <td style={{ textAlign: 'right' }}>{service.price.toFixed(2)}</td>
+                  <td style={{ textAlign: 'right' }}>{service.price.toFixed(2)}</td>
+                </tr>
+              ))}
 
               {parts.map((part, index) => (
-                <tr key={index}>
+                <tr key={`part-${index}`}>
                   <td>{part.name}</td>
                   <td style={{ textAlign: 'right' }}>{part.quantity}</td>
                   <td style={{ textAlign: 'right' }}>{part.price.toFixed(2)}</td>
