@@ -82,12 +82,14 @@ const InvoicePrintPage: React.FC = () => {
         style={{ maxWidth: '80mm', fontFamily: 'monospace', fontSize: '10px' }}
       >
         <div className="text-center mb-4">
-          <h2 style={{ textAlign: 'center', margin: '0' }}>Galaxy Engineering</h2>
-          <p style={{ textAlign: 'center', margin: '0' }}>12 Main Str, Johannesbrg</p>
-          <p style={{ textAlign: 'center', margin: '0' }}>Tel: 011- 555-1234</p>
-          <hr style={{ borderTop: '1px dashed black', margin: '10px 0' }} />
-          <h1 className="text-lg font-bold">Invoice #{invoice.id}</h1>
-        </div>
+                    <h2 style={{ textAlign: 'center', margin: '0' }}>DAMASIH MOTOR ENGINEERING</h2>
+                    <p style={{ textAlign: 'center', margin: '0' }}>409 Rotweiller Road, Mayibuye-Tembisa</p>
+                    <p style={{ textAlign: 'center', margin: '0' }}>Tel: 081 527 6080</p>
+                    <p style={{ textAlign: 'center', margin: '0' }}>Tel: 010 335 0492</p>
+                    <p style={{ textAlign: 'center', margin: '0' }}>www.masihmotoreng.co.za</p>
+                    <hr style={{ borderTop: '1px dashed black', margin: '10px 0' }} />
+                    <h1 className="text-lg font-bold">Job Card #{job.id}</h1>
+                </div>
 
         {/* Customer Details */}
         <div className="mb-4 border-b border-dashed pb-2">
@@ -166,8 +168,16 @@ const InvoicePrintPage: React.FC = () => {
         </div>
 
         <div style={{ textAlign: 'center', marginTop: '20px' }}>
-          <p style={{ textAlign: 'center', marginTop: '20px' }}>Thank you for your business!</p>
-        </div>
+                    <p style={{ textAlign: 'center', marginTop: '20px' }}>TERMS & CONDITIONS</p>
+                    <p style={{ textAlign: 'center', marginTop: '20px' }}>1. 3 Months warranty for each and everyjob, excluding the Crankshaft & Overheatings.</p>
+                    <p style={{ textAlign: 'center', marginTop: '20px' }}>2. After 3 Months the company is not responsible for any goods!</p>
+                    <p style={{ textAlign: 'center', marginTop: '20px' }}>3. After 3 months the company has the right to sell unclaimed finished work to cover the loss</p>
+                    <br />
+                    <br />
+                    <br />
+                    <p style={{ textAlign: 'center', marginTop: '20px' }}>Customer Signature ...........................</p>
+                    <p style={{ textAlign: 'center', marginTop: '20px' }}>Thank you for your business!</p>
+                </div>
       </div>
     </div>
   );
