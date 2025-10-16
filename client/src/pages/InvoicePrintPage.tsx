@@ -29,6 +29,8 @@ interface Job {
   // servicePrice: number;     // Remove from Job interface as it's now on Invoice
 }
 
+import logo from '../images/logo.png';
+
 const InvoicePrintPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
@@ -82,6 +84,7 @@ const InvoicePrintPage: React.FC = () => {
         style={{ maxWidth: '80mm', fontFamily: 'monospace', fontSize: '10px' }}
       >
         <div className="text-center mb-4">
+                    <img src={logo} alt="Company Logo" style={{ width: '100px', margin: '0 auto' }} />
                     <h2 style={{ textAlign: 'center', margin: '0' }}>DA MASIH MOTOR ENGINEERING</h2>
                     <p style={{ textAlign: 'center', margin: '0' }}>409 Rotweiller Road, Mayibuye-Tembisa</p>
                     <p style={{ textAlign: 'center', margin: '0' }}>Tel: 081 527 6080</p>

@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom';
 import { getJob, getInventory, updateJob } from '../services/api';
 
 
+import logo from '../images/logo.png';
+
 const JobCardPrintPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [job, setJob] = useState<any | null>(null);
@@ -107,6 +109,7 @@ const JobCardPrintPage: React.FC = () => {
         <div className="p-5 print-preview-page">
             <div className="printable-area bg-white p-8 mx-auto shadow-md print:p-1 print:shadow-none" style={{ width: '80mm', fontFamily: 'monospace', padding: '10px' }}>
                 <div className="text-center mb-4">
+                    <img src={logo} alt="Company Logo" style={{ width: '100px', margin: '0 auto' }} />
                     <h2 style={{ textAlign: 'center', margin: '0' }}>DA MASIH MOTOR ENGINEERING</h2>
                     <p style={{ textAlign: 'center', margin: '0' }}>409 Rotweiller Road, Mayibuye-Tembisa</p>
                     <p style={{ textAlign: 'center', margin: '0' }}>Tel: 081 527 6080</p>

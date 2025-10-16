@@ -100,6 +100,8 @@ router.post('/', (req: express.Request, res: express.Response) => {
   console.log('jobType:', jobType);
   console.log('services:', services);
 
+  console.log('services:', services);
+
   if (!customerId || !jobType || !services || !Array.isArray(services) || services.length === 0) {
     res.status(400).json({ "error": "Missing required fields" });
     return;
