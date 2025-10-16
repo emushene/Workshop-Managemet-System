@@ -105,9 +105,9 @@ const JobCardPrintPage: React.FC = () => {
 
     return (
         <div className="p-5 print-preview-page">
-            <div className="printable-area bg-white p-8 mx-auto shadow-md print:p-0 print:shadow-none" style={{ width: '80mm', fontFamily: 'monospace', padding: '10px' }}>
+            <div className="printable-area bg-white p-8 mx-auto shadow-md print:p-1 print:shadow-none" style={{ width: '80mm', fontFamily: 'monospace', padding: '10px' }}>
                 <div className="text-center mb-4">
-                    <h2 style={{ textAlign: 'center', margin: '0' }}>DAMASIH MOTOR ENGINEERING</h2>
+                    <h2 style={{ textAlign: 'center', margin: '0' }}>DA MASIH MOTOR ENGINEERING</h2>
                     <p style={{ textAlign: 'center', margin: '0' }}>409 Rotweiller Road, Mayibuye-Tembisa</p>
                     <p style={{ textAlign: 'center', margin: '0' }}>Tel: 081 527 6080</p>
                     <p style={{ textAlign: 'center', margin: '0' }}>Tel: 010 335 0492</p>
@@ -123,14 +123,17 @@ const JobCardPrintPage: React.FC = () => {
 
                 <div className="mb-4 border-b border-dashed pb-2">
                     <h3 className="font-bold text-xs mb-1">Job Details</h3>
-                    <p className="text-xs"><strong>Service:</strong> {job.serviceDescription}</p>
+                    <p className="text-xs"><strong>Service:</strong> {job.services?.map((s: any) => s.part_name).join(', ')}</p>
                     <p className="text-xs"><strong>Status:</strong> {job.status}</p>
-                    <p className="text-xs"><strong>Price:</strong> R {job.servicePrice ? job.servicePrice.toFixed(2) : 'N/A'}</p>
+                    
                     <p className="text-xs"><strong>Date Booked:</strong> {new Date(job.dateBookedIn).toLocaleDateString()}</p>
                     {job.dateExpectedOut && <p className="text-xs"><strong>Expected Completion:</strong> {new Date(job.dateExpectedOut).toLocaleDateString()}</p>}
-                    {job.vehicleMake && <p className="text-xs"><strong>Vehicle Make/Model:</strong> {job.vehicleMake} {job.vehicleModel}</p>}
+                    {job.vehicleMake && <p className="text-xs"><strong>Vehicle Make:</strong> {job.vehicleMake}</p>}
+                    {job.vehicleModel && <p className="text-xs"><strong>Vehicle Model:</strong> {job.vehicleModel}</p>}
+                    {job.vehicleYear && <p className="text-xs"><strong>Vehicle Year:</strong> {job.vehicleYear}</p>}
                     {job.partNumber && <p className="text-xs"><strong>Part Number:</strong> {job.partNumber}</p>}
                     {job.serialNumber && <p className="text-xs"><strong>Serial Number:</strong> {job.serialNumber}</p>}
+                    {job.itemDescription && <p className="text-xs"><strong>Description:</strong> {job.itemDescription}</p>}
                 </div>
 
                 <div className="mb-4 border-b border-dashed pb-2">
@@ -139,30 +142,26 @@ const JobCardPrintPage: React.FC = () => {
                 </div>
 
                 <div className="mb-4 border-b border-dashed pb-2">
-                    <h3 className="font-bold text-xs mb-1">Parts Used:</h3>
-                    {parts.length > 0 ? (
+                    <h3 className="font-bold text-xs mb-1">Services:</h3>
+                    {job.services && job.services.length > 0 ? (
                         <table style={{ width: '100%', fontSize: '12px' }}>
                             <thead>
                                 <tr>
-                                    <th style={{ textAlign: 'left' }}>Item</th>
-                                    <th style={{ textAlign: 'right' }}>Qty</th>
+                                    <th style={{ textAlign: 'left' }}>Service</th>
                                     <th style={{ textAlign: 'right' }}>Price</th>
-                                    <th style={{ textAlign: 'right' }}>Total</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {parts.map((part: any, index: number) => (
+                                {job.services.map((service: any, index: number) => (
                                     <tr key={index}>
-                                        <td>{part.name}</td>
-                                        <td style={{ textAlign: 'right' }}>{part.quantity}</td>
-                                        <td style={{ textAlign: 'right' }}>{part.price ? part.price.toFixed(2) : 'N/A'}</td>
-                                        <td style={{ textAlign: 'right' }}>{part.price ? (part.price * part.quantity).toFixed(2) : 'N/A'}</td>
+                                        <td>{service.part_name}</td>
+                                        <td style={{ textAlign: 'right' }}>{service.price ? service.price.toFixed(2) : 'N/A'}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     ) : (
-                        <p className="text-xs">No parts added yet.</p>
+                        <p className="text-xs">No services added yet.</p>
                     )}
                 </div>
 

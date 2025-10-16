@@ -1,19 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getJob, getInventory, updateJob, getServiceItemPart, createInvoice } from '../services/api';
+import { getJob, updateJob, createInvoice } from '../services/api';
 
 const JobDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [job, setJob] = useState<any>(null);
-  const [inventory, setInventory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [note, setNote] = useState('');
-  const [parts, setParts] = useState<any[]>([]);
-  const [serviceItemPart, setServiceItemPart] = useState<any>(null);
   const [isCreatingInvoice, setIsCreatingInvoice] = useState(false);
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -22,15 +18,6 @@ const JobDetailPage: React.FC = () => {
         setLoading(true);
         const jobResponse = await getJob(parseInt(id));
         setJob(jobResponse.data.data);
-        const inventoryResponse = await getInventory();
-        setInventory(inventoryResponse.data.data);
-        if (jobResponse.data.data.partsProcured) {
-          setParts(JSON.parse(jobResponse.data.data.partsProcured));
-        }
-        if (jobResponse.data.data.serviceItemPartId) {
-          const serviceItemPartResponse = await getServiceItemPart(jobResponse.data.data.serviceItemPartId);
-          setServiceItemPart(serviceItemPartResponse.data.data);
-        }
       } catch (err) {
         setError('Failed to fetch data');
         console.error(err);
@@ -54,44 +41,15 @@ const JobDetailPage: React.FC = () => {
     }
   };
 
-  const handleAddPart = (part: any) => {
-    const existingPart = parts.find(p => p.id === part.id);
-    if (existingPart) {
-      setParts(parts.map(p => p.id === part.id ? { ...p, quantity: p.quantity + 1 } : p));
-    } else {
-      setParts([...parts, { ...part, quantity: 1 }]);
-    }
-  };
-
-  const handleUpdateParts = async () => {
-    try {
-      const updatedJob = { ...job, partsProcured: JSON.stringify(parts) };
-      await updateJob(job.id, updatedJob);
-      setJob(updatedJob);
-    } catch (err) {
-      setError('Failed to update parts');
-    }
-  };
-
   const handleCreateInvoice = async () => {
     setIsCreatingInvoice(true);
     setError('');
     try {
-      // 1. Calculate total amount
-      const serviceTotal = job.servicePrice || 0;
-      const partsTotal = parts.reduce((sum, part) => sum + (part.price * part.quantity), 0);
-      const totalAmount = serviceTotal + partsTotal;
-
-      // 2. Create the invoice
+      const totalAmount = job.services.reduce((sum: number, service: any) => sum + service.price, 0);
       const response = await createInvoice({ jobId: job.id, totalAmount });
       const newInvoice = response.data.data;
-
-      // 3. Update job status to 'Invoiced'
       await updateJob(job.id, { status: 'Invoiced' });
-
-      // 4. Navigate to the new invoice page
       navigate(`/invoices/${newInvoice.id}`);
-
     } catch (err) {
         setError('Failed to create invoice. Please try again.');
         console.error(err);
@@ -129,12 +87,14 @@ const JobDetailPage: React.FC = () => {
             <h2 className="text-2xl font-bold mb-4">Job Information</h2>
             <p><strong>Customer:</strong> {job.customerName}</p>
             <p><strong>Item:</strong> {job.itemDescription}</p>
-            <p><strong>Service:</strong> {job.serviceDescription}</p>
-            {serviceItemPart && (
-              <p><strong>Service Item Part:</strong> {serviceItemPart.part_name} ({serviceItemPart.category})</p>
-            )}
+            {job.vehicleMake && <p><strong>Vehicle:</strong> {job.vehicleMake} {job.vehicleModel} ({job.vehicleYear})</p>}
             <p><strong>Status:</strong> {job.status}</p>
-            <p><strong>Service Price:</strong> R{job.servicePrice.toFixed(2)}</p>
+            <h3 className="text-xl font-bold mt-4 mb-2">Services</h3>
+            <ul className="list-disc list-inside">
+              {job.services && job.services.map((service: any, index: number) => (
+                <li key={index}>{service.part_name} - R{service.price.toFixed(2)}</li>
+              ))}
+            </ul>
           </div>
           <div className="bg-white shadow-md rounded-lg p-6">
             <h2 className="text-2xl font-bold mb-4">Job Updates</h2>
@@ -159,25 +119,7 @@ const JobDetailPage: React.FC = () => {
           </div>
         </div>
         <div>
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <h2 className="text-2xl font-bold mb-4">Parts Used</h2>
-            <div className="mb-4">
-              <select onChange={(e) => handleAddPart(inventory.find(i => i.id === parseInt(e.target.value)))} className="w-full px-3 py-2 border border-gray-300 rounded-md">
-                <option>Select a part</option>
-                {inventory.map(item => (
-                  <option key={item.id} value={item.id}>{item.name}</option>
-                ))}
-              </select>
-            </div>
-            <ul>
-              {parts.map(part => (
-                <li key={part.id} className="flex justify-between items-center py-1">
-                  <span>{part.name} x {part.quantity}</span>
-                </li>
-              ))}
-            </ul>
-            <button onClick={handleUpdateParts} className="bg-green-500 text-white px-4 py-2 rounded-md mt-4">Save Parts</button>
-          </div>
+          {/* Further details can be added here */}
         </div>
       </div>
 

@@ -9,6 +9,7 @@ router.get('/', (req: express.Request, res: express.Response) => {
   const sql = "select * from Customers";
   db.all(sql, [], (err: Error, rows: any[]) => {
     if (err) {
+      console.log(err);
       res.status(400).json({ "error": err.message });
       return;
     }

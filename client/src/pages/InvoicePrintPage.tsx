@@ -82,7 +82,7 @@ const InvoicePrintPage: React.FC = () => {
         style={{ maxWidth: '80mm', fontFamily: 'monospace', fontSize: '10px' }}
       >
         <div className="text-center mb-4">
-                    <h2 style={{ textAlign: 'center', margin: '0' }}>DAMASIH MOTOR ENGINEERING</h2>
+                    <h2 style={{ textAlign: 'center', margin: '0' }}>DA MASIH MOTOR ENGINEERING</h2>
                     <p style={{ textAlign: 'center', margin: '0' }}>409 Rotweiller Road, Mayibuye-Tembisa</p>
                     <p style={{ textAlign: 'center', margin: '0' }}>Tel: 081 527 6080</p>
                     <p style={{ textAlign: 'center', margin: '0' }}>Tel: 010 335 0492</p>

@@ -60,6 +60,9 @@ export const createServiceItemPart = (data: any) => api.post('/service-item-part
 export const updateServiceItemPart = (id: number, data: any) => api.put(`/service-item-parts/${id}`, data);
 export const deleteServiceItemPart = (id: number) => api.delete(`/service-item-parts/${id}`);
 
+// Vehicles
+export const getVehicles = () => api.get('/vehicles');
+
 // Invoices
 export const getInvoices = () => api.get('/invoices');
 export const getInvoice = (id: number) => api.get(`/invoices/${id}`);
@@ -72,6 +75,6 @@ export const getSale = (id: number) => api.get(`/sales/${id}`);
 export const createSale = (data: any) => api.post('/sales', data);
 
 // Payments
-export const createPayment = (data: any) => axios.post(`${API_URL}/sales/payment`, data);
+export const createPayment = (data: any) => api.post('/sales/payment', data);
 
 export default api;

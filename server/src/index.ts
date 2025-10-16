@@ -15,6 +15,7 @@ import jobRoutes from './routes/jobRoutes';
 import posRoutes from './routes/posRoutes';
 import salesRoutes from './routes/salesRoutes';
 import serviceItemPartsRoutes from './routes/serviceItemPartsRoutes';
+import vehicleRoutes from './routes/vehicleRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -32,6 +33,7 @@ app.use('/api/jobs', jobRoutes);
 app.use('/api/pos', posRoutes);
 app.use('/api/sales', salesRoutes);
 app.use('/api/service-item-parts', serviceItemPartsRoutes);
+app.use('/api/vehicles', vehicleRoutes);
 
 // Root route
 app.get('/', (req, res) => {

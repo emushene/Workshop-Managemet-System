@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -13,9 +13,17 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, invoiceId,
   const [currentMethod, setCurrentMethod] = useState('Cash');
   const [currentAmount, setCurrentAmount] = useState<string>('');
 
+  useEffect(() => {
+    if (isOpen) {
+      setPayments([]);
+      setCurrentAmount(balanceDue.toFixed(2));
+    }
+  }, [isOpen, balanceDue]);
+
   const totalPaid = useMemo(() => payments.reduce((acc, p) => acc + p.amount, 0), [payments]);
-  const remainingBalance = useMemo(() => balanceDue - totalPaid, [balanceDue, totalPaid]);
-  const change = useMemo(() => (totalPaid > balanceDue ? totalPaid - balanceDue : 0), [balanceDue, totalPaid]);
+  const numericBalanceDue = Number(balanceDue) || 0;
+  const remainingBalance = useMemo(() => numericBalanceDue - totalPaid, [numericBalanceDue, totalPaid]);
+  const change = useMemo(() => (totalPaid > numericBalanceDue ? totalPaid - numericBalanceDue : 0), [numericBalanceDue, totalPaid]);
 
   const addPayment = () => {
     const amount = parseFloat(currentAmount);
@@ -69,7 +77,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, invoiceId,
         <div className="mb-4 p-4 bg-gray-100 rounded-lg">
           <div className="flex justify-between text-xl font-bold">
             <span>Total Due:</span>
-            <span>{balanceDue.toFixed(2)} ZAR</span>
+            <span>{numericBalanceDue.toFixed(2)} ZAR</span>
           </div>
           <div className="flex justify-between text-lg text-green-600">
             <span>Total Paid:</span>

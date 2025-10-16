@@ -1,6 +1,7 @@
 import sqlite3 from 'sqlite3';
+import path from 'path';
 
-const DBSOURCE = 'database.sqlite';
+const DBSOURCE = path.join(__dirname, '..', 'database.sqlite');
 
 const db = new sqlite3.Database(DBSOURCE, (err: Error | null) => {
   if (err) {

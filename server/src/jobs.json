@@ -1,0 +1,21 @@
+[
+  { "service_name": "Cylinder Head Refurbishing", "category": "Cylinder Head Services", "description": "Full overhaul including valve seats, guides, and surfacing.", "price": 1500.00 },
+  { "service_name": "Cam Bushes Installation/Replacement", "category": "Cylinder Head Services", "description": "Fitting or replacing camshaft bushes.", "price": 450.00 },
+  { "service_name": "Engine Block Resleeve", "category": "Engine Block Services", "description": "Installing new sleeves in cylinder bores.", "price": 2500.00 },
+  { "service_name": "Engine Block Rebore", "category": "Engine Block Services", "description": "Reboring cylinders to oversized dimensions.", "price": 1800.00 },
+  { "service_name": "Line Bore", "category": "Engine Block Services", "description": "Precision boring of main bearing housings.", "price": 2200.00 },
+  { "service_name": "Aluminum Welding", "category": "Welding & Fabrication", "description": "TIG/MIG welding on aluminum components.", "price": 350.00 },
+  { "service_name": "Cast Welding", "category": "Welding & Fabrication", "description": "Repairs on cast iron parts.", "price": 400.00 },
+  { "service_name": "Pressure Test", "category": "Testing & Pressing", "description": "Testing for leaks in assemblies.", "price": 250.00 },
+  { "service_name": "Piston Pressing", "category": "Testing & Pressing", "description": "Press-fitting pistons with tolerances.", "price": 150.00 },
+  { "service_name": "Conrod Re-sizing", "category": "Testing & Pressing", "description": "Resizing conrod ends for bearings.", "price": 300.00 },
+  { "service_name": "Bearing Pressing", "category": "Testing & Pressing", "description": "Pressing bearings into place.", "price": 100.00 },
+  { "service_name": "Crankshaft Grinding", "category": "Crankshaft Work", "description": "Grinding journals to undersize specs.", "price": 1200.00 },
+  { "service_name": "Crankshaft Polishing", "category": "Crankshaft Work", "description": "Micro-polishing for reduced friction.", "price": 500.00 },
+  { "service_name": "Crankshaft Straightening", "category": "Crankshaft Work", "description": "Correcting bends in the shaft.", "price": 800.00 },
+  { "service_name": "Crankshaft Balancing", "category": "Crankshaft Work", "description": "Dynamic balancing to reduce vibrations.", "price": 750.00 },
+  { "service_name": "Crankshaft Hardening", "category": "Crankshaft Work", "description": "Hardening journals for increased wear resistance.", "price": 900.00 },
+  { "service_name": "Crankshaft Welding", "category": "Crankshaft Work", "description": "Repairing cracks on cranks.", "price": 600.00 },
+  { "service_name": "Crankshaft Inspection & Magnaflux", "category": "Crankshaft Work", "description": "Crack detection and measurements.", "price": 450.00 },
+  { "service_name": "Crankshaft Oil Hole Chamfering", "category": "Crankshaft Work", "description": "Deburring oil passages.", "price": 200.00 }
+]

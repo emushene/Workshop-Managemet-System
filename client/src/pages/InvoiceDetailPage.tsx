@@ -3,13 +3,18 @@ import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { getInvoice, createPayment } from '../services/api';
 import PaymentModal from '../components/pos/PaymentModal';
 
+interface Service {
+  part_name: string;
+  price: number;
+}
+
 interface Invoice {
   id: number;
   dateCreated: string;
   customerName: string;
-  serviceDescription: string;
   totalAmount: number;
   amountPaid: number;
+  services: Service[];
 }
 
 const InvoiceDetailPage: React.FC = () => {
@@ -49,11 +54,15 @@ const InvoiceDetailPage: React.FC = () => {
     try {
       await createPayment({
         invoiceId: invoice.id,
-        amount: paymentDetails.amount, // Use the amount from the payment modal
+        amount: paymentDetails.amount,
         paymentMethod: paymentDetails.paymentMethod,
       });
       setIsPaymentModalOpen(false);
-      navigate(`/invoices/${invoice.id}`);
+      // Refetch invoice data after payment with a small delay
+      setTimeout(async () => {
+        const response = await getInvoice(Number(id));
+        setInvoice(response.data.data);
+      }, 100);
     } catch (error) {
       console.error('Failed to create payment', error);
     }
@@ -63,10 +72,14 @@ const InvoiceDetailPage: React.FC = () => {
   if (error) return <div className="p-4 text-red-500">{error}</div>;
   if (!invoice) return <div className="p-4">Invoice not found.</div>;
 
+  const totalAmount = Number(invoice?.totalAmount) || 0;
+  const amountPaid = Number(invoice?.amountPaid) || 0;
+  const balanceDue = totalAmount - amountPaid;
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Invoice #{invoice.id}</h1>
+        <h1 className="text-3xl font-bold">Invoice #{invoice?.id}</h1>
         <button
           onClick={() => setIsPaymentModalOpen(true)}
           className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
@@ -90,16 +103,16 @@ const InvoiceDetailPage: React.FC = () => {
         <div className="print-info mb-4">
           <p>
             <strong>Invoice Date:</strong>{' '}
-            {invoice.dateCreated ? new Date(invoice.dateCreated).toLocaleDateString() : 'N/A'}
+            {invoice?.dateCreated ? new Date(invoice.dateCreated).toLocaleDateString() : 'N/A'}
           </p>
           <p>
-            <strong>Invoice ID:</strong> {invoice.id}
+            <strong>Invoice ID:</strong> {invoice?.id}
           </p>
         </div>
 
         <div className="print-bill-to mb-4">
           <h3 className="text-xl font-bold mb-2">Bill To:</h3>
-          <p>{invoice.customerName ?? 'N/A'}</p>
+          <p>{invoice?.customerName ?? 'N/A'}</p>
         </div>
 
         <div className="print-table">
@@ -111,30 +124,30 @@ const InvoiceDetailPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td className="text-left">{invoice.serviceDescription ?? ''}</td>
-                <td className="text-right">
-                  R{invoice.totalAmount != null ? invoice.totalAmount.toFixed(2) : '0.00'}
-                </td>
-              </tr>
+              {(invoice?.services || []).map((service, index) => (
+                <tr key={index}>
+                  <td className="text-left">{service.part_name}</td>
+                  <td className="text-right">R{(Number(service.price) || 0).toFixed(2)}</td>
+                </tr>
+              ))}
             </tbody>
             <tfoot>
               <tr>
                 <td className="text-right font-bold">Total:</td>
                 <td className="text-right">
-                  R{invoice.totalAmount != null ? invoice.totalAmount.toFixed(2) : '0.00'}
+                  R{totalAmount.toFixed(2)}
                 </td>
               </tr>
               <tr>
                 <td className="text-right font-bold">Amount Paid:</td>
                 <td className="text-right">
-                  R{invoice.amountPaid != null ? invoice.amountPaid.toFixed(2) : '0.00'}
+                  R{amountPaid.toFixed(2)}
                 </td>
               </tr>
               <tr>
                 <td className="text-right font-bold">Balance Due:</td>
                 <td className="text-right">
-                  R{(invoice.totalAmount - invoice.amountPaid).toFixed(2)}
+                  R{balanceDue.toFixed(2)}
                 </td>
               </tr>
             </tfoot>
@@ -147,7 +160,7 @@ const InvoiceDetailPage: React.FC = () => {
           isOpen={isPaymentModalOpen}
           onClose={() => setIsPaymentModalOpen(false)}
           onPaymentSuccess={handlePaymentSuccess}
-          balanceDue={invoice.totalAmount - invoice.amountPaid}
+          balanceDue={balanceDue}
           invoiceId={invoice.id}
         />
       )}
