@@ -238,7 +238,7 @@ const JobsDashboard: React.FC = () => {
           onClose={() => setIsPaymentModalOpen(false)}
           invoiceId={invoice.id}
           onPaymentSuccess={handlePaymentSuccess}
-          totalAmount={invoice.totalAmount ?? 0}
+          balanceDue={invoice.totalAmount - invoice.amountPaid}
         />
       )}
     </div>

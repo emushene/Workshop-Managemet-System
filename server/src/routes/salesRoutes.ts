@@ -70,12 +70,12 @@ router.post('/', async (req: express.Request, res: express.Response) => {
         });
 
         // Create a corresponding invoice for the sale
-        await new Promise((resolve, reject) => {
-            const sql = 'INSERT INTO Invoices (id, customerId, totalAmount, amountPaid, dateCreated, status, discountAmount) VALUES (?, ?, ?, ?, ?, ?, ?)';
-            const params = [sale.id, customerId, finalTotal, totalPaid, dateCreated, status, discountAmount || 0];
+        const invoice: any = await new Promise((resolve, reject) => {
+            const sql = 'INSERT INTO Invoices (customerId, totalAmount, amountPaid, dateCreated, status, discountAmount) VALUES (?, ?, ?, ?, ?, ?)';
+            const params = [customerId, finalTotal, totalPaid, dateCreated, status, discountAmount || 0];
             db.run(sql, params, function (this: any, err: Error) {
                 if (err) reject(err);
-                else resolve(this.lastID);
+                else resolve({ id: this.lastID });
             });
         });
 
@@ -112,7 +112,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
             for (const payment of payments) {
                 await new Promise((resolve, reject) => {
                     db.run('INSERT INTO Payments (invoiceId, amount, paymentDate, paymentMethod, type, notes) VALUES (?, ?, ?, ?, ?, ?)',
-                        [sale.id, payment.amount, new Date().toISOString(), payment.method, 'Full Payment', 'Payment for sale'],
+                        [invoice.id, payment.amount, new Date().toISOString(), payment.method, 'Full Payment', 'Payment for sale'],
                         function (this: any, err: Error) {
                             if (err) reject(err);
                             else resolve(this.lastID);
@@ -124,10 +124,11 @@ router.post('/', async (req: express.Request, res: express.Response) => {
 
         res.status(201).json({
             "message": "Sale created successfully",
-            "data": sale
+            "data": { ...sale, invoiceId: invoice.id }
         });
 
     } catch (error: any) {
+        console.error('Error creating sale:', error);
         res.status(500).json({ "error": error.message });
     }
 });

@@ -9,6 +9,7 @@ interface Invoice {
   customerName: string;
   serviceDescription: string;
   totalAmount: number;
+  amountPaid: number;
 }
 
 const InvoiceDetailPage: React.FC = () => {
@@ -48,7 +49,7 @@ const InvoiceDetailPage: React.FC = () => {
     try {
       await createPayment({
         invoiceId: invoice.id,
-        amount: invoice.totalAmount,
+        amount: paymentDetails.amount, // Use the amount from the payment modal
         paymentMethod: paymentDetails.paymentMethod,
       });
       setIsPaymentModalOpen(false);
@@ -66,6 +67,12 @@ const InvoiceDetailPage: React.FC = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Invoice #{invoice.id}</h1>
+        <button
+          onClick={() => setIsPaymentModalOpen(true)}
+          className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+        >
+          Pay
+        </button>
         <Link
           to={`/invoices/${id}/print`}
           className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
@@ -113,9 +120,21 @@ const InvoiceDetailPage: React.FC = () => {
             </tbody>
             <tfoot>
               <tr>
-                <td className="text-right">Total:</td>
+                <td className="text-right font-bold">Total:</td>
                 <td className="text-right">
                   R{invoice.totalAmount != null ? invoice.totalAmount.toFixed(2) : '0.00'}
+                </td>
+              </tr>
+              <tr>
+                <td className="text-right font-bold">Amount Paid:</td>
+                <td className="text-right">
+                  R{invoice.amountPaid != null ? invoice.amountPaid.toFixed(2) : '0.00'}
+                </td>
+              </tr>
+              <tr>
+                <td className="text-right font-bold">Balance Due:</td>
+                <td className="text-right">
+                  R{(invoice.totalAmount - invoice.amountPaid).toFixed(2)}
                 </td>
               </tr>
             </tfoot>
@@ -128,7 +147,7 @@ const InvoiceDetailPage: React.FC = () => {
           isOpen={isPaymentModalOpen}
           onClose={() => setIsPaymentModalOpen(false)}
           onPaymentSuccess={handlePaymentSuccess}
-          totalAmount={invoice.totalAmount}
+          balanceDue={invoice.totalAmount - invoice.amountPaid}
           invoiceId={invoice.id}
         />
       )}

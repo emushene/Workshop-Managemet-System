@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { getInvoice } from '../services/api';
 
+
 // Define types
 interface Part {
   name: string;
@@ -71,16 +72,12 @@ const InvoicePrintPage: React.FC = () => {
         className="printable-area bg-white p-8 mx-auto shadow-md print:p-0 print:shadow-none"
         style={{ maxWidth: '80mm', fontFamily: 'monospace', fontSize: '10px' }}
       >
-        {/* Header */}
         <div className="text-center mb-4">
+          <h2 style={{ textAlign: 'center', margin: '0' }}>Galaxy Engineering</h2>
+          <p style={{ textAlign: 'center', margin: '0' }}>12 Main Str, Johannesbrg</p>
+          <p style={{ textAlign: 'center', margin: '0' }}>Tel: 011- 555-1234</p>
+          <hr style={{ borderTop: '1px dashed black', margin: '10px 0' }} />
           <h1 className="text-lg font-bold">Invoice #{invoice.id}</h1>
-          <div className="text-xs">
-            <strong>Galaxy Engineering</strong>
-            <br />
-            12 Main Str
-            <br />
-            Johannesburg, Gauteng, 2005
-          </div>
         </div>
 
         {/* Customer Details */}
@@ -106,29 +103,29 @@ const InvoicePrintPage: React.FC = () => {
         {/* Items Table */}
         <div className="mb-4 border-b border-dashed pb-2">
           <h3 className="font-bold text-xs mb-1">Items:</h3>
-          <table className="w-full text-xs">
+          <table style={{ width: '100%', fontSize: '12px' }}>
             <thead>
               <tr>
-                <th className="text-left">Item</th>
-                <th className="text-right">Qty</th>
-                <th className="text-right">Price</th>
-                <th className="text-right">Total</th>
+                <th style={{ textAlign: 'left' }}>Item</th>
+                <th style={{ textAlign: 'right' }}>Qty</th>
+                <th style={{ textAlign: 'right' }}>Price</th>
+                <th style={{ textAlign: 'right' }}>Total</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td>{job?.serviceDescription ?? ''}</td>
-                <td className="text-right">1</td>
-                <td className="text-right">{(job?.servicePrice ?? 0).toFixed(2)}</td>
-                <td className="text-right">{(job?.servicePrice ?? 0).toFixed(2)}</td>
+                <td style={{ textAlign: 'right' }}>1</td>
+                <td style={{ textAlign: 'right' }}>{(job?.servicePrice ?? 0).toFixed(2)}</td>
+                <td style={{ textAlign: 'right' }}>{(job?.servicePrice ?? 0).toFixed(2)}</td>
               </tr>
 
               {parts.map((part, index) => (
                 <tr key={index}>
                   <td>{part.name}</td>
-                  <td className="text-right">{part.quantity}</td>
-                  <td className="text-right">{part.price.toFixed(2)}</td>
-                  <td className="text-right">{(part.price * part.quantity).toFixed(2)}</td>
+                  <td style={{ textAlign: 'right' }}>{part.quantity}</td>
+                  <td style={{ textAlign: 'right' }}>{part.price.toFixed(2)}</td>
+                  <td style={{ textAlign: 'right' }}>{(part.price * part.quantity).toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
@@ -159,9 +156,8 @@ const InvoicePrintPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Footer */}
-        <div className="text-center mt-4">
-          <p className="text-xs">Thank you for your business!</p>
+        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+          <p style={{ textAlign: 'center', marginTop: '20px' }}>Thank you for your business!</p>
         </div>
       </div>
     </div>

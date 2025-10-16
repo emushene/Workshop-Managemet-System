@@ -1,4 +1,5 @@
 import express = require('express');
+import fs from 'fs';
 const router = express.Router();
 import db from '../database';
 
@@ -47,10 +48,11 @@ router.get('/', (req: express.Request, res: express.Response) => {
 
 // GET a single invoice by ID
 router.get('/:id', (req: express.Request, res: express.Response) => {
-  const sql = "SELECT Invoices.*, Jobs.itemDescription, Jobs.serviceDescription, Customers.name as customerName FROM Invoices JOIN Jobs ON Invoices.jobId = Jobs.id JOIN Customers ON Jobs.customerId = Customers.id WHERE Invoices.id = ?";
-  const params = [req.params.id];
+  const sql = "SELECT Invoices.*, Jobs.itemDescription, Jobs.serviceDescription, Jobs.servicePrice, Jobs.partsProcured, Customers.name as customerName FROM Invoices JOIN Customers ON Invoices.customerId = Customers.id LEFT JOIN Jobs ON Invoices.jobId = Jobs.id WHERE Invoices.id = ?";
+  const params = [parseInt(req.params.id, 10)];
   db.get(sql, params, (err: Error, row: any) => {
     if (err) {
+      fs.appendFileSync('error.log', `Error fetching invoice: ${JSON.stringify(err)}\n`);
       res.status(400).json({ "error": err.message });
       return;
     }

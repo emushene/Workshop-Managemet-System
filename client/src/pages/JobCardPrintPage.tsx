@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { getJob, getInventory, updateJob } from '../services/api';
 
+
 const JobCardPrintPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [job, setJob] = useState<any | null>(null);
@@ -94,14 +95,13 @@ const JobCardPrintPage: React.FC = () => {
 
     return (
         <div className="p-5 print-preview-page">
-            <div className="printable-area bg-white p-8 mx-auto shadow-md print:p-0 print:shadow-none" style={{ maxWidth: '80mm', fontFamily: 'monospace', fontSize: '10px' }}>
+            <div className="printable-area bg-white p-8 mx-auto shadow-md print:p-0 print:shadow-none" style={{ width: '80mm', fontFamily: 'monospace', padding: '10px' }}>
                 <div className="text-center mb-4">
+                    <h2 style={{ textAlign: 'center', margin: '0' }}>Galaxy Engineering</h2>
+                    <p style={{ textAlign: 'center', margin: '0' }}>12 Main Str, Johannesbrg</p>
+                    <p style={{ textAlign: 'center', margin: '0' }}>Tel: 011- 555-1234</p>
+                    <hr style={{ borderTop: '1px dashed black', margin: '10px 0' }} />
                     <h1 className="text-lg font-bold">Job Card #{job.id}</h1>
-                    <div className="text-xs">
-                        <strong>Galaxy Engineering</strong><br />
-                        12 Main Str<br />
-                        Johannesburg, Gauteng, 2005
-                    </div>
                 </div>
 
                 <div className="mb-4 border-b border-dashed pb-2">
@@ -129,22 +129,22 @@ const JobCardPrintPage: React.FC = () => {
                 <div className="mb-4 border-b border-dashed pb-2">
                     <h3 className="font-bold text-xs mb-1">Parts Used:</h3>
                     {parts.length > 0 ? (
-                        <table className="w-full text-xs">
+                        <table style={{ width: '100%', fontSize: '12px' }}>
                             <thead>
                                 <tr>
-                                    <th className="text-left">Item</th>
-                                    <th className="text-right">Qty</th>
-                                    <th className="text-right">Price</th>
-                                    <th className="text-right">Total</th>
+                                    <th style={{ textAlign: 'left' }}>Item</th>
+                                    <th style={{ textAlign: 'right' }}>Qty</th>
+                                    <th style={{ textAlign: 'right' }}>Price</th>
+                                    <th style={{ textAlign: 'right' }}>Total</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {parts.map((part: any, index: number) => (
                                     <tr key={index}>
                                         <td>{part.name}</td>
-                                        <td className="text-right">{part.quantity}</td>
-                                        <td className="text-right">{part.price ? part.price.toFixed(2) : 'N/A'}</td>
-                                        <td className="text-right">{part.price ? (part.price * part.quantity).toFixed(2) : 'N/A'}</td>
+                                        <td style={{ textAlign: 'right' }}>{part.quantity}</td>
+                                        <td style={{ textAlign: 'right' }}>{part.price ? part.price.toFixed(2) : 'N/A'}</td>
+                                        <td style={{ textAlign: 'right' }}>{part.price ? (part.price * part.quantity).toFixed(2) : 'N/A'}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -159,8 +159,8 @@ const JobCardPrintPage: React.FC = () => {
                     <p className="text-xs">{job.technicianNotes || 'N/A'}</p>
                 </div>
 
-                <div className="text-center mt-4">
-                    <p className="text-xs">Thank you for your business!</p>
+                <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                    <p style={{ textAlign: 'center', marginTop: '20px' }}>Thank you for your business!</p>
                 </div>
             </div>
 

@@ -6,6 +6,7 @@ interface ReceiptProps {
     saleItems: any[];
     total: number;
     discount: number;
+    customerName: string;
   };
 }
 
@@ -13,13 +14,14 @@ const Receipt: React.FC<ReceiptProps> = ({ saleData }) => {
   const subtotal = saleData.saleItems.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
 
   return (
-    <div style={{ width: '80mm', fontFamily: 'monospace', padding: '10px' }}>
+    <div className="printable-area" style={{ width: '80mm', fontFamily: 'monospace', padding: '10px' }}>
       <h2 style={{ textAlign: 'center', margin: '0' }}>Galaxy Engineering</h2>
       <p style={{ textAlign: 'center', margin: '0' }}>12 Main Str, Johannesbrg</p>
       <p style={{ textAlign: 'center', margin: '0' }}>Tel: 011- 555-1234</p>
       <hr style={{ borderTop: '1px dashed black', margin: '10px 0' }} />
       <p>Invoice #: {saleData.invoiceId}</p>
       <p>Date: {new Date().toLocaleString()}</p>
+      <p>Customer: {saleData.customerName}</p>
       <hr style={{ borderTop: '1px dashed black', margin: '10px 0' }} />
       <table style={{ width: '100%', fontSize: '12px' }}>
         <thead>
