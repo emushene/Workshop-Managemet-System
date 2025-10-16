@@ -171,10 +171,10 @@ const JobCardPrintPage: React.FC = () => {
                 </div>
 
                 <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                    <p style={{ textAlign: 'center', marginTop: '20px' }}>TERMS & CONDITIONS</p>
-                    <p style={{ textAlign: 'center', marginTop: '20px' }}>1. 3 Months warranty for each and everyjob, excluding the Crankshaft & Overheatings.</p>
-                    <p style={{ textAlign: 'center', marginTop: '20px' }}>2. After 3 Months the company is not responsible for any goods!</p>
-                    <p style={{ textAlign: 'center', marginTop: '20px' }}>3. After 3 months the company has the right to sell unclaimed finished work to cover the loss</p>
+                    <p style={{ textAlign: 'center', marginTop: '20px', textDecoration: 'bold' }}>TERMS & CONDITIONS</p>
+                    <p style={{ marginTop: '2px' }}>1. 3 Months warranty for each and everyjob, excluding the Crankshaft & Overheatings.</p>
+                    <p style={{ marginTop: '2px' }}>2. After 3 Months the company is not responsible for any goods!</p>
+                    <p style={{ marginTop: '2px' }}>3. After 3 months the company has the right to sell unclaimed finished work to cover the loss</p>
                     <br />
                     <br />
                     <br />
