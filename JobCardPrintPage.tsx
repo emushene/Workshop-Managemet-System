@@ -17,7 +17,6 @@ const JobCardPrintPage: React.FC = () => {
     // Automatically print when the component has loaded the job data
     useEffect(() => {
         if (job) {
-            console.log('Printing job:', job);
             // We add a small timeout to allow content to render before printing
             setTimeout(() => {
                 window.print();
@@ -106,10 +105,6 @@ const JobCardPrintPage: React.FC = () => {
         }
     }
 
-    const servicesTotal = job.services?.reduce((acc: number, service: any) => acc + service.price, 0) || 0;
-    const partsTotal = parts.reduce((acc: number, part: any) => acc + (part.price * part.quantity), 0) || 0;
-    const grandTotal = servicesTotal + partsTotal;
-
     return (
         <div className="p-5 print-preview-page">
             <div className="printable-area bg-white p-8 mx-auto shadow-md print:p-1 print:shadow-none" style={{ width: '80mm', fontFamily: 'monospace', padding: '10px' }}>
@@ -174,55 +169,8 @@ const JobCardPrintPage: React.FC = () => {
                 </div>
 
                 <div className="mb-4 border-b border-dashed pb-2">
-                    <h3 className="font-bold text-xs mb-1">Parts Used:</h3>
-                    {parts.length > 0 ? (
-                        <table style={{ width: '100%', fontSize: '12px' }}>
-                            <thead>
-                                <tr>
-                                    <th style={{ textAlign: 'left' }}>Part</th>
-                                    <th style={{ textAlign: 'center' }}>Qty</th>
-                                    <th style={{ textAlign: 'right' }}>Price</th>
-                                    <th style={{ textAlign: 'right' }}>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {parts.map((part: any, index: number) => (
-                                    <tr key={index}>
-                                        <td>{part.name}</td>
-                                        <td style={{ textAlign: 'center' }}>{part.quantity}</td>
-                                        <td style={{ textAlign: 'right' }}>{part.price ? part.price.toFixed(2) : 'N/A'}</td>
-                                        <td style={{ textAlign: 'right' }}>{(part.price * part.quantity).toFixed(2)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    ) : (
-                        <p className="text-xs">No parts used.</p>
-                    )}
-                </div>
-
-                <div className="mb-4 border-b border-dashed pb-2">
                     <h3 className="font-bold text-xs mb-1">Technician Notes:</h3>
                     <p className="text-xs">{job.technicianNotes || 'N/A'}</p>
-                </div>
-
-                <div className="mt-4">
-                    <table style={{ width: '100%', fontSize: '12px' }}>
-                        <tfoot>
-                            <tr>
-                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>Services Total:</td>
-                                <td style={{ textAlign: 'right' }}>{servicesTotal.toFixed(2)}</td>
-                            </tr>
-                            <tr>
-                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>Parts Total:</td>
-                                <td style={{ textAlign: 'right' }}>{partsTotal.toFixed(2)}</td>
-                            </tr>
-                            <tr>
-                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>Grand Total:</td>
-                                <td style={{ textAlign: 'right' }}>{grandTotal.toFixed(2)}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
                 </div>
 
                 <div style={{ textAlign: 'center', marginTop: '20px' }}>

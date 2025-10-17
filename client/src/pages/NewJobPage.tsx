@@ -303,7 +303,7 @@ const NewJobPage: React.FC = () => {
                 {jobType === 'PART' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div><label className="block text-sm font-bold mb-2">Part Number</label><input type="text" value={partNumber} onChange={(e) => setPartNumber(e.target.value)} className="shadow-sm border rounded w-full py-2 px-3" /></div>
-                    <div><label className="block text-sm font-bold mb-2">Serial Number</label><input type="text" value={serialNumber} onChange={(e) => setSerialNumber(e.target.value)} className="shadow-sm border rounded w-full py-2 px-3" /></div>
+                    <div><label className="block text-sm font-bold mb-2">Engine Number</label><input type="text" value={serialNumber} onChange={(e) => setSerialNumber(e.target.value)} className="shadow-sm border rounded w-full py-2 px-3" /></div>
                   </div>
                 )}
               </fieldset>

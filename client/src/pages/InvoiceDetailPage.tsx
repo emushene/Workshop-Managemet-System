@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { getInvoice, createPayment } from '../services/api';
 import PaymentModal from '../components/pos/PaymentModal';
 
@@ -24,7 +24,6 @@ const InvoiceDetailPage: React.FC = () => {
   const [error, setError] = useState('');
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
 
   // Fetch invoice on mount or when id changes
   useEffect(() => {

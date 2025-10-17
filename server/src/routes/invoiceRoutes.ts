@@ -8,7 +8,7 @@ console.log('Invoice routes module loaded');
 router.get('/', (req: express.Request, res: express.Response) => {
   const sql = `
     SELECT 
-      i.id, i.jobId, i.totalAmount, i.amountPaid, i.status, i.dateCreated,
+      i.jobId as id, i.jobId, i.totalAmount, i.amountPaid, i.status, i.dateCreated,
       c.name as customerName
     FROM Invoices i
     JOIN Jobs j ON i.jobId = j.id
@@ -32,13 +32,13 @@ router.get('/:id', async (req: express.Request, res: express.Response) => {
 
   const invoiceSql = `
     SELECT 
-      i.id, i.jobId, i.totalAmount, i.amountPaid, i.discountAmount, i.status, i.dateCreated,
+      i.jobId as id, i.totalAmount, i.amountPaid, i.status, i.dateCreated,
       j.itemDescription,
       c.name as customerName
     FROM Invoices i
     JOIN Jobs j ON i.jobId = j.id
     JOIN Customers c ON j.customerId = c.id
-    WHERE i.id = ?
+    WHERE i.jobId = ?
   `;
 
   try {
@@ -100,7 +100,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
       }
       res.status(201).json({
         "message": "success",
-        "data": { id: this.lastID, jobId, totalAmount, dateCreated, status: status || 'Unpaid' }
+        "data": { id: jobId, jobId, totalAmount, dateCreated, status: status || 'Unpaid' }
       });
     });
   } catch (error: any) {
