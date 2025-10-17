@@ -53,13 +53,12 @@ router.get('/:id', async (req: express.Request, res: express.Response) => {
     LEFT JOIN Vehicles v ON j.vehicleId = v.id
     WHERE j.id = ?
   `;
-  const servicesSql = `
-    SELECT s.part_name, s.price, s.category, s.description
-    FROM JobServices js
-    JOIN ServiceItemParts s ON js.serviceItemPartId = s.id
-    WHERE js.jobId = ?
-  `;
-
+      const servicesSql = `
+      SELECT s.part_name, js.price, s.category, s.description
+      FROM JobServices js
+      JOIN ServiceItemParts s ON js.serviceItemPartId = s.id
+      WHERE js.jobId = ?
+    `;
   try {
     const job = await new Promise((resolve, reject) => {
       db.get(jobSql, [jobId], (err, row) => {
@@ -260,7 +259,7 @@ router.get('/:id/job-card', async (req: express.Request, res: express.Response) 
     }
 
     const services: any[] = await new Promise((resolve, reject) => {
-        const sql = "SELECT s.part_name, s.price FROM JobServices js JOIN ServiceItemParts s ON js.serviceItemPartId = s.id WHERE js.jobId = ?";
+        const sql = "SELECT s.part_name, js.price FROM JobServices js JOIN ServiceItemParts s ON js.serviceItemPartId = s.id WHERE js.jobId = ?";
         db.all(sql, [id], (err: Error, rows: any[]) => {
             if (err) reject(err);
             else resolve(rows);
