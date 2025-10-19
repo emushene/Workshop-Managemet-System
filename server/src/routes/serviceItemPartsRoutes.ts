@@ -46,8 +46,9 @@ router.post('/', (req: express.Request, res: express.Response) => {
     res.status(400).json({ "error": "Missing required fields: part_name, category, common_services, and price" });
     return;
   }
+  const priceInCents = Math.round(price * 100);
   const sql = 'INSERT INTO ServiceItemParts (part_name, category, common_services, price, description) VALUES (?, ?, ?, ?, ?)';
-  const params = [part_name, category, common_services, price, description];
+  const params = [part_name, category, common_services, priceInCents, description];
   db.run(sql, params, function (this: any, err: Error) {
     if (err) {
       res.status(400).json({ "error": err.message });
@@ -55,7 +56,7 @@ router.post('/', (req: express.Request, res: express.Response) => {
     }
     res.status(201).json({
       "message": "success",
-      "data": { id: this.lastID, part_name, category, common_services, price, description }
+      "data": { id: this.lastID, part_name, category, common_services, price: priceInCents, description }
     });
   });
 });
@@ -68,8 +69,9 @@ router.put('/:id', (req: express.Request, res: express.Response) => {
     res.status(400).json({ "error": "Missing required fields: part_name, category, common_services, and price" });
     return;
   }
+  const priceInCents = Math.round(price * 100);
   const sql = 'UPDATE ServiceItemParts SET part_name = ?, category = ?, common_services = ?, price = ?, description = ? WHERE id = ?';
-  const params = [part_name, category, common_services, price, description, id];
+  const params = [part_name, category, common_services, priceInCents, description, id];
   db.run(sql, params, function (this: any, err: Error) {
     if (err) {
       res.status(400).json({ "error": err.message });
@@ -81,7 +83,7 @@ router.put('/:id', (req: express.Request, res: express.Response) => {
     }
     res.json({
       "message": "success",
-      "data": { id: Number(id), part_name, category, common_services, price, description }
+      "data": { id: Number(id), part_name, category, common_services, price: priceInCents, description }
     });
   });
 });

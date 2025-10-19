@@ -6,15 +6,26 @@ console.log('Invoice routes module loaded');
 
 // GET all invoices
 router.get('/', (req: express.Request, res: express.Response) => {
-  const sql = `
+  const { jobId } = req.query;
+
+  let sql = `
     SELECT 
-      i.jobId as id, i.jobId, i.totalAmount, i.amountPaid, i.status, i.dateCreated,
+      i.jobId as id, i.jobId, i.totalAmount, 
+      (SELECT SUM(p.amount) FROM Payments p WHERE p.invoiceId = i.jobId) as amountPaid,
+      i.status, i.dateCreated,
       c.name as customerName
     FROM Invoices i
     JOIN Jobs j ON i.jobId = j.id
     JOIN Customers c ON j.customerId = c.id
   `;
-  db.all(sql, [], (err: Error, rows: any[]) => {
+
+  const params: any[] = [];
+  if (jobId) {
+    sql += ' WHERE i.jobId = ?';
+    params.push(jobId);
+  }
+
+  db.all(sql, params, (err: Error, rows: any[]) => {
     if (err) {
       res.status(400).json({ "error": err.message });
       return;
@@ -67,12 +78,19 @@ router.get('/:id', async (req: express.Request, res: express.Response) => {
       });
     });
 
-    // For the frontend, we can concatenate service names into a single string
-    const serviceDescription = (services as any[]).map(s => s.part_name).join(', ');
+    const paymentsSql = `SELECT SUM(amount) as totalPaid FROM Payments WHERE invoiceId = ?`;
+    const paymentInfo: any = await new Promise((resolve, reject) => {
+      db.get(paymentsSql, [invoice.id], (err, row) => {
+        if (err) reject(err);
+        resolve(row);
+      });
+    });
+
+    invoice.amountPaid = paymentInfo.totalPaid || 0;
 
     res.json({
       message: 'success',
-      data: { ...invoice, services, serviceDescription },
+      data: { ...invoice, services },
     });
 
   } catch (err: any) {

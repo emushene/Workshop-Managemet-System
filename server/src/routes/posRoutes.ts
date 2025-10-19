@@ -13,53 +13,43 @@ router.post('/finalize-job', async (req: express.Request, res: express.Response)
   }
 
   try {
-    // Fetch job details
-    const job: any = await new Promise((resolve, reject) => {
-      db.get("SELECT * FROM Jobs WHERE id = ?", [jobId], (err: Error, row: any) => {
+    // Fetch job services and inventory to calculate total amount
+    const jobServices: any[] = await new Promise((resolve, reject) => {
+      db.all("SELECT * FROM JobServices WHERE jobId = ?", [jobId], (err, rows) => {
         if (err) reject(err);
-        else resolve(row);
+        else resolve(rows);
       });
     });
 
-    if (!job) {
-      return res.status(404).json({ "message": "Job not found" });
-    }
+    const jobInventory: any[] = await new Promise((resolve, reject) => {
+      db.all("SELECT ji.*, i.price FROM JobInventory ji JOIN Inventory i ON ji.inventoryId = i.id WHERE ji.jobId = ?", [jobId], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
 
-    // Calculate total amount
-    let totalAmount = job.servicePrice || 0;
+    let totalAmount = 0;
+    jobServices.forEach(service => totalAmount += service.price);
+    jobInventory.forEach(item => totalAmount += item.price * item.quantityUsed);
 
-    // Add cost of parts procured
-    if (job.partsProcured) {
-      try {
-        const partsProcured = JSON.parse(job.partsProcured);
-        if (Array.isArray(partsProcured)) {
-          partsProcured.forEach((part: any) => {
-            if (part.cost && part.quantity) {
-              totalAmount += (part.cost * part.quantity);
-            }
-          });
-        }
-      } catch (parseError) {
-        console.error("Error parsing partsProcured JSON:", parseError);
-        // Continue without adding parts cost if parsing fails
-      }
-    }
+    // Convert amounts from client (in dollars) to cents
+    const discountAmountInCents = discountAmount ? Math.round(discountAmount * 100) : 0;
+    const initialPaymentAmountInCents = initialPayment ? Math.round(initialPayment.amount * 100) : 0;
 
     // Create invoice
     const dateCreated = new Date().toISOString();
-    const amountPaid = initialPayment ? initialPayment.amount : 0;
-    const finalTotal = totalAmount - (discountAmount || 0);
+    const finalTotal = totalAmount - discountAmountInCents;
     let status = 'Unpaid';
-    if (amountPaid > 0) {
-      status = amountPaid >= finalTotal ? 'Paid' : 'Partially Paid';
+    if (initialPaymentAmountInCents > 0) {
+      status = initialPaymentAmountInCents >= finalTotal ? 'Paid' : 'Partially Paid';
     }
 
     const invoice: any = await new Promise((resolve, reject) => {
       db.run('INSERT INTO Invoices (jobId, totalAmount, amountPaid, discountAmount, dateCreated, status) VALUES (?, ?, ?, ?, ?, ?)',
-        [jobId, totalAmount, amountPaid, discountAmount || 0, dateCreated, status],
+        [jobId, totalAmount, initialPaymentAmountInCents, discountAmountInCents, dateCreated, status],
         function (this: any, err: Error) {
           if (err) reject(err);
-          else resolve({ id: this.lastID, jobId, totalAmount, amountPaid, discountAmount: discountAmount || 0, dateCreated, status });
+          else resolve({ id: this.lastID, jobId, totalAmount, amountPaid: initialPaymentAmountInCents, discountAmount: discountAmountInCents, dateCreated, status });
         }
       );
     });
@@ -68,7 +58,7 @@ router.post('/finalize-job', async (req: express.Request, res: express.Response)
     if (initialPayment && initialPayment.amount > 0) {
       await new Promise((resolve, reject) => {
         db.run('INSERT INTO Payments (invoiceId, amount, paymentDate, paymentMethod, type, notes) VALUES (?, ?, ?, ?, ?, ?)',
-          [invoice.id, initialPayment.amount, new Date().toISOString(), initialPayment.paymentMethod, initialPayment.type, initialPayment.notes],
+          [jobId, initialPaymentAmountInCents, new Date().toISOString(), initialPayment.paymentMethod, initialPayment.type, initialPayment.notes],
           function (this: any, err: Error) {
             if (err) reject(err);
             else resolve(this.lastID);
@@ -108,7 +98,7 @@ router.post('/payments', async (req: express.Request, res: express.Response) => 
   try {
     // Fetch invoice details
     const invoice: any = await new Promise((resolve, reject) => {
-      db.get("SELECT * FROM Invoices WHERE id = ?", [invoiceId], (err: Error, row: any) => {
+      db.get("SELECT * FROM Invoices WHERE jobId = ?", [invoiceId], (err: Error, row: any) => {
         if (err) reject(err);
         else resolve(row);
       });
@@ -118,25 +108,36 @@ router.post('/payments', async (req: express.Request, res: express.Response) => 
       return res.status(404).json({ "message": "Invoice not found" });
     }
 
+    const amountInCents = Math.round(amount * 100);
+
     // Create new payment
     const paymentDate = new Date().toISOString();
     const newPayment: any = await new Promise((resolve, reject) => {
       db.run('INSERT INTO Payments (invoiceId, amount, paymentDate, paymentMethod, type, notes) VALUES (?, ?, ?, ?, ?, ?)',
-        [invoiceId, amount, paymentDate, paymentMethod, type, notes],
+        [invoiceId, amountInCents, paymentDate, paymentMethod, type, notes],
         function (this: any, err: Error) {
           if (err) reject(err);
-          else resolve({ id: this.lastID, invoiceId, amount, paymentDate, paymentMethod, type, notes });
+          else resolve({ id: this.lastID, invoiceId, amount: amountInCents, paymentDate, paymentMethod, type, notes });
         }
       );
     });
 
-    // Update invoice amountPaid and status
-    const newAmountPaid = invoice.amountPaid + amount;
+    // Get the new total paid amount
+    const paymentsSql = `SELECT SUM(amount) as totalPaid FROM Payments WHERE invoiceId = ?`;
+    const paymentInfo: any = await new Promise((resolve, reject) => {
+      db.get(paymentsSql, [invoiceId], (err, row) => {
+        if (err) reject(err);
+        resolve(row);
+      });
+    });
+    const newAmountPaid = paymentInfo.totalPaid || 0;
+
+    // Update invoice status
     const finalTotal = invoice.totalAmount - invoice.discountAmount;
     const newStatus = newAmountPaid >= finalTotal ? 'Paid' : 'Partially Paid';
 
     await new Promise((resolve, reject) => {
-      db.run('UPDATE Invoices SET amountPaid = ?, status = ? WHERE id = ?', [newAmountPaid, newStatus, invoiceId], function (this: any, err: Error) {
+      db.run('UPDATE Invoices SET status = ? WHERE jobId = ?', [newStatus, invoiceId], function (this: any, err: Error) {
         if (err) reject(err);
         else resolve(this.changes);
       });

@@ -46,8 +46,9 @@ router.post('/', (req: express.Request, res: express.Response) => {
     res.status(400).json({ "error": "Missing required fields" });
     return;
   }
+  const priceInCents = Math.round(price * 100);
   const sql = 'INSERT INTO Inventory (name, quantity, price) VALUES (?, ?, ?)';
-  const params = [name, quantity, price];
+  const params = [name, quantity, priceInCents];
   db.run(sql, params, function (this: any, err: Error) {
     if (err) {
       res.status(400).json({ "error": err.message });
@@ -55,7 +56,7 @@ router.post('/', (req: express.Request, res: express.Response) => {
     }
     res.status(201).json({
       "message": "success",
-      "data": { id: this.lastID, name, quantity, price }
+      "data": { id: this.lastID, name, quantity, price: priceInCents }
     });
   });
 });
@@ -68,8 +69,9 @@ router.put('/:id', (req: express.Request, res: express.Response) => {
     res.status(400).json({ "error": "Missing required fields" });
     return;
   }
+  const priceInCents = Math.round(price * 100);
   const sql = 'UPDATE Inventory SET name = ?, quantity = ?, price = ? WHERE id = ?';
-  const params = [name, quantity, price, id];
+  const params = [name, quantity, priceInCents, id];
   db.run(sql, params, function (this: any, err: Error) {
     if (err) {
       res.status(400).json({ "error": err.message });
@@ -81,7 +83,7 @@ router.put('/:id', (req: express.Request, res: express.Response) => {
     }
     res.json({
       "message": "success",
-      "data": { id: Number(id), name, quantity, price }
+      "data": { id: Number(id), name, quantity, price: priceInCents }
     });
   });
 });

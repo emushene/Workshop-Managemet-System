@@ -30,7 +30,17 @@ router.post('/', async (req: express.Request, res: express.Response) => {
     }
 
     try {
-        // Calculate total amount
+        // Create a new job for the sale
+        const job: any = await new Promise((resolve, reject) => {
+            db.run('INSERT INTO Jobs (customerId, itemDescription, jobType, status) VALUES (?, ?, ?, ?)',
+                [customerId, 'Direct Sale', 'PART', 'Completed'],
+                function (this: any, err: Error) {
+                    if (err) reject(err);
+                    else resolve({ id: this.lastID });
+                }
+            );
+        });
+
         let totalAmount = 0;
         for (const item of items) {
             const inventoryItem: any = await new Promise((resolve, reject) => {
@@ -43,11 +53,34 @@ router.post('/', async (req: express.Request, res: express.Response) => {
                 return res.status(404).json({ "message": `Inventory item with id ${item.id} not found` });
             }
             totalAmount += inventoryItem.price * item.quantity;
+
+            // Add item to JobInventory
+            await new Promise((resolve, reject) => {
+                db.run('INSERT INTO JobInventory (jobId, inventoryId, quantityUsed) VALUES (?, ?, ?)',
+                    [job.id, item.id, item.quantity],
+                    function (this: any, err: Error) {
+                        if (err) reject(err);
+                        else resolve(this.lastID);
+                    }
+                );
+            });
+
+            // Update inventory quantity
+            const newQuantity = inventoryItem.quantity - item.quantity;
+            await new Promise((resolve, reject) => {
+                db.run('UPDATE Inventory SET quantity = ? WHERE id = ?', [newQuantity, item.id], function (this: any, err: Error) {
+                    if (err) reject(err);
+                    else resolve(this.changes);
+                });
+            });
         }
 
+        const discountAmountInCents = discountAmount ? Math.round(discountAmount * 100) : 0;
+        const paymentsInCents = payments ? payments.map((p: any) => ({ ...p, amount: Math.round(p.amount * 100) })) : [];
+
         const dateCreated = new Date().toISOString();
-        const finalTotal = totalAmount - (discountAmount || 0);
-        const totalPaid = payments ? payments.reduce((acc: number, p: any) => acc + p.amount, 0) : 0;
+        const finalTotal = totalAmount - discountAmountInCents;
+        const totalPaid = paymentsInCents.reduce((acc: number, p: any) => acc + p.amount, 0);
 
         let status = requestStatus;
         if (!status) {
@@ -58,61 +91,23 @@ router.post('/', async (req: express.Request, res: express.Response) => {
             }
         }
 
-        // Create sale
-        const sale: any = await new Promise((resolve, reject) => {
-            db.run('INSERT INTO Sales (customerId, totalAmount, amountPaid, discountAmount, dateCreated, status) VALUES (?, ?, ?, ?, ?, ?)',
-                [customerId, totalAmount, totalPaid, discountAmount || 0, dateCreated, status],
+        // Create invoice for the job
+        const invoice: any = await new Promise((resolve, reject) => {
+            db.run('INSERT INTO Invoices (jobId, totalAmount, amountPaid, discountAmount, dateCreated, status) VALUES (?, ?, ?, ?, ?, ?)',
+                [job.id, totalAmount, totalPaid, discountAmountInCents, dateCreated, status],
                 function (this: any, err: Error) {
                     if (err) reject(err);
-                    else resolve({ id: this.lastID, customerId, totalAmount, amountPaid: totalPaid, discountAmount: discountAmount || 0, dateCreated, status });
+                    else resolve({ id: this.lastID, jobId: job.id, totalAmount, amountPaid: totalPaid, discountAmount: discountAmountInCents, dateCreated, status });
                 }
             );
         });
 
-        // Create a corresponding invoice for the sale
-        const invoice: any = await new Promise((resolve, reject) => {
-            const sql = 'INSERT INTO Invoices (customerId, totalAmount, amountPaid, dateCreated, status, discountAmount) VALUES (?, ?, ?, ?, ?, ?)';
-            const params = [customerId, finalTotal, totalPaid, dateCreated, status, discountAmount || 0];
-            db.run(sql, params, function (this: any, err: Error) {
-                if (err) reject(err);
-                else resolve({ id: this.lastID });
-            });
-        });
-
-        // Add items to SaleInventory and update inventory quantity
-        for (const item of items) {
-            const inventoryItem: any = await new Promise((resolve, reject) => {
-                db.get("SELECT * FROM Inventory WHERE id = ?", [item.id], (err: Error, row: any) => {
-                    if (err) reject(err);
-                    else resolve(row);
-                });
-            });
-
-            await new Promise((resolve, reject) => {
-                db.run('INSERT INTO SaleInventory (saleId, inventoryId, quantitySold, priceAtSale) VALUES (?, ?, ?, ?)',
-                    [sale.id, item.id, item.quantity, inventoryItem.price],
-                    function (this: any, err: Error) {
-                        if (err) reject(err);
-                        else resolve(this.lastID);
-                    }
-                );
-            });
-
-            const newQuantity = inventoryItem.quantity - item.quantity;
-            await new Promise((resolve, reject) => {
-                db.run('UPDATE Inventory SET quantity = ? WHERE id = ?', [newQuantity, item.id], function (this: any, err: Error) {
-                    if (err) reject(err);
-                    else resolve(this.changes);
-                });
-            });
-        }
-
         // Add payments to Payments table
-        if (payments) {
-            for (const payment of payments) {
+        if (paymentsInCents) {
+            for (const payment of paymentsInCents) {
                 await new Promise((resolve, reject) => {
                     db.run('INSERT INTO Payments (invoiceId, amount, paymentDate, paymentMethod, type, notes) VALUES (?, ?, ?, ?, ?, ?)',
-                        [invoice.id, payment.amount, new Date().toISOString(), payment.method, 'Full Payment', 'Payment for sale'],
+                        [invoice.jobId, payment.amount, new Date().toISOString(), payment.method, 'Full Payment', 'Payment for sale'],
                         function (this: any, err: Error) {
                             if (err) reject(err);
                             else resolve(this.lastID);
@@ -123,8 +118,8 @@ router.post('/', async (req: express.Request, res: express.Response) => {
         }
 
         res.status(201).json({
-            "message": "Sale created successfully",
-            "data": { ...sale, invoiceId: invoice.id }
+            "message": "Sale created successfully as a job and invoice",
+            "data": { jobId: job.id, invoiceId: invoice.id }
         });
 
     } catch (error: any) {
@@ -133,50 +128,5 @@ router.post('/', async (req: express.Request, res: express.Response) => {
     }
 });
 
-// Create a new payment
-router.post('/payment', async (req: express.Request, res: express.Response) => {
-    const { invoiceId, amount, paymentMethod } = req.body;
 
-    if (!invoiceId || !amount || !paymentMethod) {
-        return res.status(400).json({ "error": "Invoice ID, amount, and payment method are required" });
-    }
-
-    try {
-        // Create payment
-        await new Promise((resolve, reject) => {
-            db.run('INSERT INTO Payments (invoiceId, amount, paymentDate, paymentMethod, type, notes) VALUES (?, ?, ?, ?, ?, ?)',
-                [invoiceId, amount, new Date().toISOString(), paymentMethod, 'Full Payment', 'Payment for invoice'],
-                function (this: any, err: Error) {
-                    if (err) reject(err);
-                    else resolve(this.lastID);
-                }
-            );
-        });
-
-        // Update invoice
-        const invoice: any = await new Promise((resolve, reject) => {
-            db.get("SELECT * FROM Invoices WHERE id = ?", [invoiceId], (err: Error, row: any) => {
-                if (err) reject(err);
-                else resolve(row);
-            });
-        });
-
-        const newAmountPaid = invoice.amountPaid + amount;
-        const newStatus = newAmountPaid >= invoice.totalAmount ? 'Paid' : 'Partially Paid';
-
-        await new Promise((resolve, reject) => {
-            db.run('UPDATE Invoices SET amountPaid = ?, status = ? WHERE id = ?', [newAmountPaid, newStatus, invoiceId], function (this: any, err: Error) {
-                if (err) reject(err);
-                else resolve(this.changes);
-            });
-        });
-
-        res.status(201).json({
-            "message": "Payment created successfully",
-        });
-
-    } catch (error: any) {
-        res.status(500).json({ "error": error.message });
-    }
-});
 export default router;
