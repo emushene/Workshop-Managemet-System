@@ -55,6 +55,7 @@ const InvoiceDetailPage: React.FC = () => {
         invoiceId: invoice.id,
         amount: paymentDetails.amount,
         paymentMethod: paymentDetails.paymentMethod,
+        type: paymentDetails.type,
       });
       setIsPaymentModalOpen(false);
       // Refetch invoice data after payment with a small delay
@@ -95,8 +96,8 @@ const InvoiceDetailPage: React.FC = () => {
 
       <div className="bg-white shadow-md rounded-lg p-6 print-container">
         <div className="print-header mb-4">
-          <h2 className="text-2xl font-bold">Workshop Pro</h2>
-          <p>123 Workshop Lane, Mechanicville, 12345</p>
+          <h2 className="text-2xl font-bold">DA MASIH MOTOR ENGINEERING</h2>
+          <p>409 Rotweiller Road, Mayibuye-Tembisa</p>
         </div>
 
         <div className="print-info mb-4">
@@ -126,7 +127,7 @@ const InvoiceDetailPage: React.FC = () => {
               {(invoice?.services || []).map((service, index) => (
                 <tr key={index}>
                   <td className="text-left">{service.part_name}</td>
-                  <td className="text-right">R{(Number(service.price) || 0).toFixed(2)}</td>
+                  <td className="text-right">R{(Number(service.price) / 100 || 0).toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
@@ -134,19 +135,19 @@ const InvoiceDetailPage: React.FC = () => {
               <tr>
                 <td className="text-right font-bold">Total:</td>
                 <td className="text-right">
-                  R{totalAmount.toFixed(2)}
+                  R{(totalAmount / 100).toFixed(2)}
                 </td>
               </tr>
               <tr>
                 <td className="text-right font-bold">Amount Paid:</td>
                 <td className="text-right">
-                  R{amountPaid.toFixed(2)}
+                  R{(amountPaid / 100).toFixed(2)}
                 </td>
               </tr>
               <tr>
                 <td className="text-right font-bold">Balance Due:</td>
                 <td className="text-right">
-                  R{balanceDue.toFixed(2)}
+                  R{(balanceDue / 100).toFixed(2)}
                 </td>
               </tr>
             </tfoot>
@@ -159,7 +160,7 @@ const InvoiceDetailPage: React.FC = () => {
           isOpen={isPaymentModalOpen}
           onClose={() => setIsPaymentModalOpen(false)}
           onPaymentSuccess={handlePaymentSuccess}
-          balanceDue={balanceDue}
+          balanceDue={balanceDue / 100}
           invoiceId={invoice.id}
         />
       )}

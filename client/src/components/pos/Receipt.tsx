@@ -37,17 +37,17 @@ const Receipt: React.FC<ReceiptProps> = ({ saleData }) => {
             <tr key={index}>
               <td>{item.name}</td>
               <td style={{ textAlign: 'right' }}>{item.quantity}</td>
-              <td style={{ textAlign: 'right' }}>{item.unitPrice.toFixed(2)}</td>
-              <td style={{ textAlign: 'right' }}>{(item.quantity * item.unitPrice).toFixed(2)}</td>
+              <td style={{ textAlign: 'right' }}>{(item.unitPrice / 100).toFixed(2)}</td>
+              <td style={{ textAlign: 'right' }}>{((item.quantity * item.unitPrice) / 100).toFixed(2)}</td>
             </tr>
           ))}
         </tbody>
       </table>
       <hr style={{ borderTop: '1px dashed black', margin: '10px 0' }} />
       <div style={{ textAlign: 'right' }}>
-        <p>Subtotal: {subtotal.toFixed(2)}</p>
-        <p>Discount: {saleData.discount.toFixed(2)}</p>
-        <h3 style={{ margin: '5px 0' }}>Total: {saleData.total.toFixed(2)} ZAR</h3>
+        <p>Subtotal: {(subtotal / 100).toFixed(2)}</p>
+        <p>Discount: {(saleData.discount / 100).toFixed(2)}</p>
+        <h3 style={{ margin: '5px 0' }}>Total: {(saleData.total / 100).toFixed(2)} ZAR</h3>
       </div>
       <hr style={{ borderTop: '1px dashed black', margin: '10px 0' }} />
       <p style={{ textAlign: 'center', marginTop: '20px' }}>Thank you for your business!</p>

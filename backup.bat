@@ -5,7 +5,7 @@ REM -- Configuration --
 SET DB_FILE=server\database.sqlite
 SET BACKUP_DIR=backup
 SET RETENTION_DAYS=30
-SET DATE_FORMAT=%DATE:~10,4%-%DATE:~4,2%-%DATE:~7,2%
+SET DATE_FORMAT=%DATE:~0,4%-%DATE:~5,2%-%DATE:~8,2%
 SET BACKUP_FILE=%BACKUP_DIR%\db_backup_%DATE_FORMAT%.sqlite
 
 REM -- Create backup directory if it doesn't exist --

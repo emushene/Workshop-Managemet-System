@@ -91,6 +91,8 @@ const NewJobPage: React.FC = () => {
     }
   }, [selectedMake, selectedModel, vehicles]);
 
+
+
   const makes = useMemo(() => {
     return [...new Set(vehicles.map(v => v.make))];
   }, [vehicles]);
@@ -259,8 +261,9 @@ const NewJobPage: React.FC = () => {
                             <span className="mr-2">R</span>
                             <input 
                               type="number"
-                              value={service.price || ''}
-                              onChange={(e) => handleServicePriceChange(service.id, parseFloat(e.target.value))}
+                              step="0.01"
+                              value={(service.price / 100).toFixed(2)}
+                              onChange={(e) => handleServicePriceChange(service.id, parseFloat(e.target.value) * 100)}
                               className="shadow-sm border rounded w-24 py-1 px-2 text-gray-700"
                             />
                             <button type="button" onClick={() => handleRemoveService(service.id)} className="ml-4 text-red-500 hover:text-red-700">Remove</button>
@@ -335,15 +338,15 @@ const NewJobPage: React.FC = () => {
                                         {service.part_name} (Service)
                                     </th>
                                     <td className="px-6 py-4 text-right">1</td>
-                                    <td className="px-6 py-4 text-right">{service.price.toFixed(2)}</td>
-                                    <td className="px-6 py-4 text-right">{service.price.toFixed(2)}</td>
+                                    <td className="px-6 py-4 text-right">{(service.price / 100).toFixed(2)}</td>
+                                    <td className="px-6 py-4 text-right">{(service.price / 100).toFixed(2)}</td>
                                 </tr>
                             ))}
                         </tbody>
                         <tfoot>
                             <tr className="font-semibold text-gray-900">
                                 <th scope="row" colSpan={3} className="px-6 py-3 text-base text-right">Grand Total</th>
-                                <td className="px-6 py-3 text-base text-right">{grandTotal.toFixed(2)} ZAR</td>
+                                <td className="px-6 py-3 text-base text-right">{(grandTotal / 100).toFixed(2)} ZAR</td>
                             </tr>
                         </tfoot>
                     </table>

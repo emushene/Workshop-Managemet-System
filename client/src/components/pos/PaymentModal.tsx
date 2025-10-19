@@ -5,7 +5,7 @@ interface PaymentModalProps {
   onClose: () => void;
   invoiceId: number;
   balanceDue: number;
-  onPaymentSuccess: (payment: { invoiceId: number; amount: number; paymentMethod: string }) => Promise<void>;
+  onPaymentSuccess: (payment: { invoiceId: number; amount: number; paymentMethod: string; type: string }) => Promise<void>;
 }
 
 const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, invoiceId, balanceDue, onPaymentSuccess }) => {
@@ -16,7 +16,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, invoiceId,
   useEffect(() => {
     if (isOpen) {
       setPayments([]);
-      setCurrentAmount(balanceDue.toFixed(2));
+      setCurrentAmount('');
     }
   }, [isOpen, balanceDue]);
 
@@ -41,6 +41,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, invoiceId,
           invoiceId,
           amount: p.amount,
           paymentMethod: p.method,
+          type: 'Full Payment',
         });
       }
       onClose();
@@ -58,6 +59,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, invoiceId,
           invoiceId,
           amount: p.amount,
           paymentMethod: p.method,
+          type: 'Partial Payment',
         });
       }
       onClose();

@@ -79,8 +79,9 @@ const JobsDashboard: React.FC = () => {
   const handlePayInvoice = async (job: any) => {
     try {
       const response = await getInvoiceByJobId(job.id);
-      if (response.data.data) {
-        setInvoice(response.data.data);
+      const invoiceData = response.data.data;
+      if (invoiceData && invoiceData.length > 0) {
+        setInvoice(invoiceData[0]);
         setIsPaymentModalOpen(true);
       } else {
         setError('No invoice found for this job. Please create one from the Job Details page.');
@@ -238,7 +239,7 @@ const JobsDashboard: React.FC = () => {
           onClose={() => setIsPaymentModalOpen(false)}
           invoiceId={invoice.id}
           onPaymentSuccess={handlePaymentSuccess}
-          balanceDue={invoice.totalAmount - invoice.amountPaid}
+          balanceDue={(invoice.totalAmount - invoice.amountPaid) / 100}
         />
       )}
     </div>

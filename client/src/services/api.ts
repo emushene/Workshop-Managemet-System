@@ -75,6 +75,6 @@ export const getSale = (id: number) => api.get(`/sales/${id}`);
 export const createSale = (data: any) => api.post('/sales', data);
 
 // Payments
-export const createPayment = (data: any) => api.post('/sales/payment', data);
+export const createPayment = (data: any) => api.post('/pos/payments', data);
 
 export default api;

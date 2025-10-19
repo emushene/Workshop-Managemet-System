@@ -1,0 +1,40 @@
+Summary of Changes:
+
+This document summarizes the changes made to the application to fix the payment system.
+
+1. Initial Analysis:
+   - Identified several data integrity issues in the database:
+     - Redundant `amountPaid` columns in the `Invoices` and `Sales` tables.
+     - A dual system for sales, with separate `Invoices` and `Sales` tables.
+     - The use of the `REAL` data type for monetary values, which can cause rounding errors.
+
+2. Database Migration:
+   - Created and executed a database migration script (`migration.ts`) to address the data type issue.
+   - All columns storing monetary values in the following tables were changed from `REAL` to `INTEGER`: `Inventory`, `JobServices`, `ServiceItemParts`, `Invoices`, `Payments`, `Sales`, `SaleInventory`.
+   - All monetary values are now stored in cents to ensure accuracy.
+
+3. Backend Code Changes:
+   - `posRoutes.ts`:
+     - Corrected the `totalAmount` calculation in the `/finalize-job` endpoint to be based on the sum of `JobServices` and `JobInventory`.
+     - Updated the `/finalize-job` and `/payments` endpoints to handle the conversion of monetary values from dollars (from the client) to cents (for the database).
+   - `salesRoutes.ts`:
+     - Unified the sales system by modifying the `POST /` endpoint to create a `Job` and an `Invoice` instead of a `Sale`.
+     - Updated the endpoint to handle the conversion of monetary values to cents.
+   - `inventoryRoutes.ts`:
+     - Updated the `POST /` and `PUT /:id` endpoints to handle the conversion of monetary values to cents.
+   - `jobRoutes.ts`:
+     - Verified that the routes correctly handle the prices in cents sent from the client.
+
+4. Database Cleanup:
+   - Removed the now obsolete `Sales` and `SaleInventory` tables from the database.
+
+5. Client-side Code Changes:
+   - The following files were updated to correctly display monetary values in your local currency (Rands) by dividing the values from the backend (in cents) by 100:
+     - `InventoryPage.tsx`
+     - `Cart.tsx`
+     - `POSPage.tsx`
+     - `InvoicePage.tsx`
+     - `InvoiceDetailPage.tsx`
+     - `Receipt.tsx`
+     - `NewJobPage.tsx`
+   - The input fields for prices have also been updated to allow you to enter the value in Rands. The application handles the conversion to cents when sending the data to the backend.

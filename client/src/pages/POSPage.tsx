@@ -90,7 +90,7 @@ const POSPage: React.FC = () => {
         }
     };
 
-    const handlePaymentSuccess = async (payment: { amount: number; paymentMethod: string }) => {
+    const handlePaymentSuccess = async (payment: { amount: number; paymentMethod: string; type: string }) => {
         if (!currentInvoiceId) {
             setError('No invoice is currently being processed.');
             return;
@@ -104,8 +104,8 @@ const POSPage: React.FC = () => {
             setLastSale({ 
                 invoiceId: currentInvoiceId, 
                 saleItems: cart.map(item => ({...item, unitPrice: item.price})), 
-                total: total, 
-                discount, 
+                total: total * 100, 
+                discount: discount * 100, 
                 customerName: selectedCustomer 
             });
             // Optionally, you can refresh sale data here to update status
@@ -163,8 +163,8 @@ const POSPage: React.FC = () => {
                         />
                     </div>
                     <div className="text-right">
-                        <p className="text-gray-500">Subtotal: {subtotal.toFixed(2)}</p>
-                        <p className="text-xl font-bold">Total: {total.toFixed(2)} ZAR</p>
+                        <p className="text-gray-500">Subtotal: {(subtotal / 100).toFixed(2)}</p>
+                        <p className="text-xl font-bold">Total: {(total / 100).toFixed(2)} ZAR</p>
                     </div>
                 </div>
                 <div className="flex justify-end mt-4">

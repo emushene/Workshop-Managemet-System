@@ -92,7 +92,7 @@ const JobDetailPage: React.FC = () => {
             <h3 className="text-xl font-bold mt-4 mb-2">Services</h3>
             <ul className="list-disc list-inside">
               {job.services && job.services.map((service: any, index: number) => (
-                <li key={index}>{service.part_name} - R{service.price.toFixed(2)}</li>
+                <li key={index}>{service.part_name} - R{(service.price / 100).toFixed(2)}</li>
               ))}
             </ul>
           </div>

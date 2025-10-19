@@ -36,8 +36,8 @@ const Cart: React.FC<CartProps> = ({ cart, updateQuantity, removeFromCart }) => 
                                         className="w-20 px-2 py-1 border border-gray-300 rounded-md"
                                     />
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.price.toFixed(2)}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{(item.price * item.quantity).toFixed(2)}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{(item.price / 100).toFixed(2)}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{((item.price * item.quantity) / 100).toFixed(2)}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <button onClick={() => removeFromCart(item.id)} className="text-red-600 hover:text-red-900">Remove</button>
                                 </td>
@@ -48,7 +48,7 @@ const Cart: React.FC<CartProps> = ({ cart, updateQuantity, removeFromCart }) => 
             </div>
             <div className="flex justify-end items-center mt-5 gap-4">
                 <div className="text-right">
-                    <p className="text-gray-500">Subtotal: {subtotal.toFixed(2)}</p>
+                    <p className="text-gray-500">Subtotal: {(subtotal / 100).toFixed(2)}</p>
                 </div>
             </div>
         </div>

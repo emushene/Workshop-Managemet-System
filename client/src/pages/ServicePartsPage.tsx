@@ -47,7 +47,7 @@ const ServicePartsPage: React.FC = () => {
 
   const handleOpenModal = (part: any = null) => {
     setCurrentPart(part);
-    setFormData(part ? { part_name: part.part_name, category: part.category, common_services: part.common_services, price: part.price, description: part.description } : { part_name: '', category: '', common_services: '', price: 0, description: '' });
+    setFormData(part ? { part_name: part.part_name, category: part.category, common_services: part.common_services, price: part.price / 100, description: part.description } : { part_name: '', category: '', common_services: '', price: 0, description: '' });
     setIsModalOpen(true);
   };
 
@@ -63,10 +63,14 @@ const ServicePartsPage: React.FC = () => {
       return;
     }
     try {
+      const dataToSave = {
+        ...formData,
+        price: Math.round(formData.price * 100), // Convert to cents
+      };
       if (currentPart) {
-        await updateServiceItemPart(currentPart.id, formData);
+        await updateServiceItemPart(currentPart.id, dataToSave);
       } else {
-        await createServiceItemPart(formData);
+        await createServiceItemPart(dataToSave);
       }
       fetchServiceParts();
       handleCloseModal();
@@ -92,7 +96,11 @@ const ServicePartsPage: React.FC = () => {
     { accessorKey: 'part_name', header: 'Part Name' },
     { accessorKey: 'category', header: 'Category' },
     { accessorKey: 'common_services', header: 'Common Services' },
-    { accessorKey: 'price', header: 'Price' },
+    {
+        accessorKey: 'price',
+        header: 'Price',
+        cell: ({ row }) => `R${(row.original.price / 100).toFixed(2)}`
+    },
     { accessorKey: 'description', header: 'Description' },
     {
         id: 'actions',

@@ -45,7 +45,7 @@ const InventoryPage: React.FC = () => {
 
   const handleOpenModal = (item: any = null) => {
     setCurrentItem(item);
-    setFormData(item ? { name: item.name, quantity: item.quantity, price: item.price } : { name: '', quantity: '', price: '' });
+    setFormData(item ? { name: item.name, quantity: item.quantity, price: (item.price / 100).toFixed(2) } : { name: '', quantity: '', price: '' });
     setIsModalOpen(true);
   };
 
@@ -89,7 +89,7 @@ const InventoryPage: React.FC = () => {
     {
         accessorKey: 'price',
         header: 'Price',
-        cell: ({ row }) => `R${row.original.price.toFixed(2)}`
+        cell: ({ row }) => `R${(row.original.price / 100).toFixed(2)}`
     },
     {
         id: 'actions',

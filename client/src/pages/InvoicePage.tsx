@@ -45,17 +45,17 @@ const InvoicePage: React.FC = () => {
     {
         accessorKey: 'totalAmount',
         header: 'Amount',
-        cell: ({ row }) => `R${row.original.totalAmount.toFixed(2)}`
+        cell: ({ row }) => `R${(row.original.totalAmount / 100).toFixed(2)}`
     },
     {
         accessorKey: 'amountPaid',
         header: 'Amount Paid',
-        cell: ({ row }) => `R${row.original.amountPaid.toFixed(2)}`
+        cell: ({ row }) => `R${(row.original.amountPaid / 100).toFixed(2)}`
     },
     {
         id: 'balanceDue',
         header: 'Balance Due',
-        cell: ({ row }) => `R${(row.original.totalAmount - row.original.amountPaid).toFixed(2)}`
+        cell: ({ row }) => `R${((row.original.totalAmount - row.original.amountPaid) / 100).toFixed(2)}`
     },
     { accessorKey: 'status', header: 'Status' },
     {

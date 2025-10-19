@@ -48,7 +48,7 @@ const ServiceItemPartsPage: React.FC = () => {
 
   const handleOpenModal = (item: any = null) => {
     setCurrentServiceItemPart(item);
-    setFormData(item ? { part_name: item.part_name, category: item.category, common_services: item.common_services, price: item.price, description: item.description } : { part_name: '', category: '', common_services: '', price: '', description: '' });
+    setFormData(item ? { part_name: item.part_name, category: item.category, common_services: item.common_services, price: (item.price / 100).toFixed(2), description: item.description } : { part_name: '', category: '', common_services: '', price: '', description: '' });
     setIsModalOpen(true);
   };
 
@@ -97,7 +97,7 @@ const ServiceItemPartsPage: React.FC = () => {
     {
         accessorKey: 'price',
         header: 'Price',
-        cell: ({ row }) => `R${row.original.price.toFixed(2)}`
+        cell: ({ row }) => `R${(row.original.price / 100).toFixed(2)}`
     },
     { accessorKey: 'description', header: 'Description' },
     {
