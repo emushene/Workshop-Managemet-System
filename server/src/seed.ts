@@ -169,6 +169,23 @@ const seed = () => {
       vehicleStmt.finalize();
       console.log('Vehicles seeded.');
 
+      // Set next sequence numbers for Jobs and Invoices
+      const nextId = 22546; // Set to one less than the desired starting number
+      db.run(`INSERT OR REPLACE INTO sqlite_sequence (name, seq) VALUES (?, ?)`, ['Jobs', nextId], (err) => {
+        if (err) {
+            console.error(`Error setting sequence for Jobs table:`, err.message)
+        } else {
+            console.log(`Next Job number set to ${nextId + 1}.`);
+        }
+      });
+      db.run(`INSERT OR REPLACE INTO sqlite_sequence (name, seq) VALUES (?, ?)`, ['Invoices', nextId], (err) => {
+        if (err) {
+            console.error(`Error setting sequence for Invoices table:`, err.message)
+        } else {
+            console.log(`Next Invoice number set to ${nextId + 1}.`);
+        }
+      });
+
       console.log('Database reset and seeding complete.');
 
       // Close the database connection after all operations
