@@ -8,8 +8,9 @@
     "dev": "ts-node src/index.ts",
     "build": "tsc",
     "seed": "ts-node src/seed.ts",
-    "start:prod": "pm2 start dist/index.js --name workproj --env production",
+    "start:prod": "pm2 start ecosystem.config.js --env production",
     "stop:prod": "pm2 stop workproj",
+    "delete:prod": "pm2 delete workproj",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
