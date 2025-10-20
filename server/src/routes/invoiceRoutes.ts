@@ -43,7 +43,7 @@ router.get('/:id', async (req: express.Request, res: express.Response) => {
 
   const invoiceSql = `
     SELECT 
-      i.jobId as id, i.totalAmount, i.amountPaid, i.status, i.dateCreated,
+      i.jobId as id, i.jobId, i.totalAmount, i.status, i.dateCreated,
       j.itemDescription,
       c.name as customerName
     FROM Invoices i
@@ -65,16 +65,19 @@ router.get('/:id', async (req: express.Request, res: express.Response) => {
     }
 
     const servicesSql = `
-      SELECT s.part_name, js.price
-      FROM JobServices js
-      JOIN ServiceItemParts s ON js.serviceItemPartId = s.id
-      WHERE js.jobId = ?
+      SELECT category, instructions, price
+      FROM JobItems
+      WHERE jobId = ?
     `;
 
-    const services = await new Promise((resolve, reject) => {
+    const services: any[] = await new Promise((resolve, reject) => {
       db.all(servicesSql, [invoice.jobId], (err, rows) => {
         if (err) reject(err);
-        resolve(rows);
+        const parsedRows = rows.map((row: any) => ({
+          ...row,
+          instructions: JSON.parse(row.instructions)
+        }));
+        resolve(parsedRows);
       });
     });
 

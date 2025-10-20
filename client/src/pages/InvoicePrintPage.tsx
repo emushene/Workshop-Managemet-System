@@ -86,10 +86,9 @@ const InvoicePrintPage: React.FC = () => {
       >
         <div className="text-center mb-4">
                     <img src={logo} alt="Company Logo" style={{ width: '60px', margin: '0 auto' }} />
-                    <h2 style={{ textAlign: 'center', margin: '0' }}>DA MASIH MOTOR ENGINEERING</h2>
+                    <h2 style={{ textAlign: 'center', margin: '0', fontWeight: '900', fontSize: '16px'}}><span style={{fontSize: '14px'}}>DA</span> MASIH MOTOR ENGINEERING</h2>
                     <p style={{ textAlign: 'center', margin: '0' }}>409 Rotweiller Road, Mayibuye-Tembisa</p>
-                    <p style={{ textAlign: 'center', margin: '0' }}>Tel: 081 527 6080</p>
-                    <p style={{ textAlign: 'center', margin: '0' }}>Tel: 010 335 0492</p>
+                    <p style={{ textAlign: 'center', margin: '0' }}>Tel: 081 527 6080 / 010 335 0492</p>
                     <p style={{ textAlign: 'center', margin: '0' }}>www.masihmotoreng.co.za</p>
                     <hr style={{ borderTop: '1px dashed black', margin: '10px 0' }} />
                     <h1 className="text-lg font-bold">Invoice #{invoice.id}</h1>
@@ -130,7 +129,12 @@ const InvoicePrintPage: React.FC = () => {
             <tbody>
               {invoice.services?.map((service: any, index: number) => (
                 <tr key={`service-${index}`}>
-                  <td>{service.part_name}</td>
+                  <td>
+                    <strong>{service.category}</strong>
+                    <div style={{ fontSize: '10px', color: '#555' }}>
+                      ({service.instructions.join(', ')})
+                    </div>
+                  </td>
                   <td style={{ textAlign: 'right' }}>1</td>
                   <td style={{ textAlign: 'right' }}>{(service.price / 100).toFixed(2)}</td>
                   <td style={{ textAlign: 'right' }}>{(service.price / 100).toFixed(2)}</td>
@@ -174,14 +178,18 @@ const InvoicePrintPage: React.FC = () => {
         </div>
 
         <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                    <img src={logo} alt="Company Logo" style={{ width: '60px', margin: '0 auto' }} />
-                                        <h2 style={{ textAlign: 'center', margin: '0', fontWeight: '900', fontSize: '16px'}}><span style={{fontSize: '14px'}}>DA</span> MASIH MOTOR ENGINEERING</h2>
-                                        <p style={{ textAlign: 'center', margin: '0' }}>409 Rotweiller Road, Mayibuye-Tembisa</p>
-                                        <p style={{ textAlign: 'center', margin: '0' }}>Tel: 081 527 6080 / 010 335 0492</p>
-                                        <p style={{ textAlign: 'center', margin: '0' }}>www.masihmotoreng.co.za</p>
-                                        <hr style={{ borderTop: '1px dashed black', margin: '10px 0' }} />
-                                        <h1 className="text-lg font-bold">Job Card #{job.id}</h1>
-                </div>
+            <p style={{ textAlign: 'center', marginTop: '20px', fontWeight: '900', fontSize: '12px'}}>TERMS & CONDITIONS</p>
+            <p style={{ marginTop: '2px', fontSize: '8px'}}>1. 3 Months warranty for Compression.</p>
+            <p style={{ marginTop: '2px', fontSize: '8px' }}>2. After 3 Months the company is not responsible for any goods!</p>
+            <p style={{ marginTop: '2px', fontSize: '8px' }}>3. After 3 months the company has the right to sell unclaimed finished work to cover the loss</p>
+            <br />
+            <br />
+            <br />
+            <p style={{ textAlign: 'center', marginTop: '20px', fontWeight: '900', fontSize: '14px'}}> ..................................... Customer Signature</p>
+            <p style={{ textAlign: 'center', marginTop: '20px' }}>Thank you for your business!</p>
+        </div>
+
+
       </div>
     </div>
   );

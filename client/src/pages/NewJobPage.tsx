@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCustomers, createCustomer, createJob, getVehicles } from '../services/api';
-import { SERVICE_CATEGORIES, MISC_SERVICE } from '../constants';
+import { SERVICE_CATEGORIES, MISC_SERVICE, CUSTOM_JOB_INSTRUCTION } from '../constants';
 
 // Interfaces
 interface Customer {
@@ -126,7 +126,7 @@ const NewJobPage: React.FC = () => {
     const selectedInstructions = Object.entries(instructions)
       .filter(([, isSelected]) => isSelected)
       .map(([instruction]) => {
-        if (instruction === MISC_SERVICE && miscInstruction) {
+        if ((instruction === MISC_SERVICE || instruction === CUSTOM_JOB_INSTRUCTION) && miscInstruction) {
           return miscInstruction;
         }
         return instruction;
@@ -311,7 +311,7 @@ const NewJobPage: React.FC = () => {
                                 className="mr-2"
                               />
                               <label htmlFor={`instr-${instruction}`}>{instruction}</label>
-                              {instruction === MISC_SERVICE && instructions[MISC_SERVICE] && (
+                              {(instruction === MISC_SERVICE || instruction === CUSTOM_JOB_INSTRUCTION) && instructions[instruction] && (
                                 <input
                                   type="text"
                                   value={miscInstruction}
