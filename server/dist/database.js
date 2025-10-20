@@ -4,7 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const sqlite3_1 = __importDefault(require("sqlite3"));
-const DBSOURCE = 'database.sqlite';
+const path_1 = __importDefault(require("path"));
+const DBSOURCE = path_1.default.join(__dirname, '..', 'database.sqlite');
 const db = new sqlite3_1.default.Database(DBSOURCE, (err) => {
     if (err) {
         // Cannot open database

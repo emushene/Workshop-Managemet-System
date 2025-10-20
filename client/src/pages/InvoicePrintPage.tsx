@@ -18,9 +18,11 @@ interface Invoice {
   totalAmount?: number;
   discountAmount?: number;
   amountPaid?: number;
-  partsProcured?: string; // Add partsProcured directly to Invoice interface
-  serviceDescription?: string; // Add serviceDescription directly to Invoice interface
-  servicePrice?: number; // Add servicePrice directly to Invoice interface
+  partsProcured?: string; 
+  serviceDescription?: string; 
+  servicePrice?: number; 
+  customerName?: string; // Add customerName
+  services?: any[]; // Add services array
 }
 
 interface Job {
@@ -179,9 +181,9 @@ const InvoicePrintPage: React.FC = () => {
 
         <div style={{ textAlign: 'center', marginTop: '20px' }}>
             <p style={{ textAlign: 'center', marginTop: '20px', fontWeight: '900', fontSize: '12px'}}>TERMS & CONDITIONS</p>
-            <p style={{ marginTop: '2px', fontSize: '8px'}}>1. 3 Months warranty for Compression.</p>
-            <p style={{ marginTop: '2px', fontSize: '8px' }}>2. After 3 Months the company is not responsible for any goods!</p>
-            <p style={{ marginTop: '2px', fontSize: '8px' }}>3. After 3 months the company has the right to sell unclaimed finished work to cover the loss</p>
+            <p style={{ marginTop: '2px', fontSize: '12px'}}>1. 3 Months warranty for Compression.</p>
+            <p style={{ marginTop: '2px', fontSize: '12px' }}>2. After 3 Months the company is not responsible for any goods!</p>
+            <p style={{ marginTop: '2px', fontSize: '12px' }}>3. After 3 months the company has the right to sell unclaimed finished work to cover the loss</p>
             <br />
             <br />
             <br />

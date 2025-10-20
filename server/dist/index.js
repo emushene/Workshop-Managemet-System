@@ -17,6 +17,7 @@ const jobRoutes_1 = __importDefault(require("./routes/jobRoutes"));
 const posRoutes_1 = __importDefault(require("./routes/posRoutes"));
 const salesRoutes_1 = __importDefault(require("./routes/salesRoutes"));
 const serviceItemPartsRoutes_1 = __importDefault(require("./routes/serviceItemPartsRoutes"));
+const vehicleRoutes_1 = __importDefault(require("./routes/vehicleRoutes"));
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 8080;
 // Middleware
@@ -31,6 +32,7 @@ app.use('/api/jobs', jobRoutes_1.default);
 app.use('/api/pos', posRoutes_1.default);
 app.use('/api/sales', salesRoutes_1.default);
 app.use('/api/service-item-parts', serviceItemPartsRoutes_1.default);
+app.use('/api/vehicles', vehicleRoutes_1.default);
 // Root route
 app.get('/', (req, res) => {
     res.send('API is running...');

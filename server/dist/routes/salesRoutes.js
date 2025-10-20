@@ -33,7 +33,15 @@ router.post('/', async (req, res) => {
         return res.status(400).json({ "error": "Items are required" });
     }
     try {
-        // Calculate total amount
+        // Create a new job for the sale
+        const job = await new Promise((resolve, reject) => {
+            database_1.default.run('INSERT INTO Jobs (customerId, itemDescription, jobType, status) VALUES (?, ?, ?, ?)', [customerId, 'Direct Sale', 'PART', 'Completed'], function (err) {
+                if (err)
+                    reject(err);
+                else
+                    resolve({ id: this.lastID });
+            });
+        });
         let totalAmount = 0;
         for (const item of items) {
             const inventoryItem = await new Promise((resolve, reject) => {
@@ -48,57 +56,16 @@ router.post('/', async (req, res) => {
                 return res.status(404).json({ "message": `Inventory item with id ${item.id} not found` });
             }
             totalAmount += inventoryItem.price * item.quantity;
-        }
-        const dateCreated = new Date().toISOString();
-        const finalTotal = totalAmount - (discountAmount || 0);
-        const totalPaid = payments ? payments.reduce((acc, p) => acc + p.amount, 0) : 0;
-        let status = requestStatus;
-        if (!status) {
-            if (totalPaid > 0) {
-                status = totalPaid >= finalTotal ? 'Paid' : 'Partially Paid';
-            }
-            else {
-                status = 'Unpaid';
-            }
-        }
-        // Create sale
-        const sale = await new Promise((resolve, reject) => {
-            database_1.default.run('INSERT INTO Sales (customerId, totalAmount, amountPaid, discountAmount, dateCreated, status) VALUES (?, ?, ?, ?, ?, ?)', [customerId, totalAmount, totalPaid, discountAmount || 0, dateCreated, status], function (err) {
-                if (err)
-                    reject(err);
-                else
-                    resolve({ id: this.lastID, customerId, totalAmount, amountPaid: totalPaid, discountAmount: discountAmount || 0, dateCreated, status });
-            });
-        });
-        // Create a corresponding invoice for the sale
-        const invoice = await new Promise((resolve, reject) => {
-            const sql = 'INSERT INTO Invoices (customerId, totalAmount, amountPaid, dateCreated, status, discountAmount) VALUES (?, ?, ?, ?, ?, ?)';
-            const params = [customerId, finalTotal, totalPaid, dateCreated, status, discountAmount || 0];
-            database_1.default.run(sql, params, function (err) {
-                if (err)
-                    reject(err);
-                else
-                    resolve({ id: this.lastID });
-            });
-        });
-        // Add items to SaleInventory and update inventory quantity
-        for (const item of items) {
-            const inventoryItem = await new Promise((resolve, reject) => {
-                database_1.default.get("SELECT * FROM Inventory WHERE id = ?", [item.id], (err, row) => {
-                    if (err)
-                        reject(err);
-                    else
-                        resolve(row);
-                });
-            });
+            // Add item to JobInventory
             await new Promise((resolve, reject) => {
-                database_1.default.run('INSERT INTO SaleInventory (saleId, inventoryId, quantitySold, priceAtSale) VALUES (?, ?, ?, ?)', [sale.id, item.id, item.quantity, inventoryItem.price], function (err) {
+                database_1.default.run('INSERT INTO JobInventory (jobId, inventoryId, quantityUsed) VALUES (?, ?, ?)', [job.id, item.id, item.quantity], function (err) {
                     if (err)
                         reject(err);
                     else
                         resolve(this.lastID);
                 });
             });
+            // Update inventory quantity
             const newQuantity = inventoryItem.quantity - item.quantity;
             await new Promise((resolve, reject) => {
                 database_1.default.run('UPDATE Inventory SET quantity = ? WHERE id = ?', [newQuantity, item.id], function (err) {
@@ -109,11 +76,34 @@ router.post('/', async (req, res) => {
                 });
             });
         }
+        const discountAmountInCents = discountAmount ? Math.round(discountAmount * 100) : 0;
+        const paymentsInCents = payments ? payments.map((p) => ({ ...p, amount: Math.round(p.amount * 100) })) : [];
+        const dateCreated = new Date().toISOString();
+        const finalTotal = totalAmount - discountAmountInCents;
+        const totalPaid = paymentsInCents.reduce((acc, p) => acc + p.amount, 0);
+        let status = requestStatus;
+        if (!status) {
+            if (totalPaid > 0) {
+                status = totalPaid >= finalTotal ? 'Paid' : 'Partially Paid';
+            }
+            else {
+                status = 'Unpaid';
+            }
+        }
+        // Create invoice for the job
+        const invoice = await new Promise((resolve, reject) => {
+            database_1.default.run('INSERT INTO Invoices (jobId, totalAmount, amountPaid, discountAmount, dateCreated, status) VALUES (?, ?, ?, ?, ?, ?)', [job.id, totalAmount, totalPaid, discountAmountInCents, dateCreated, status], function (err) {
+                if (err)
+                    reject(err);
+                else
+                    resolve({ id: this.lastID, jobId: job.id, totalAmount, amountPaid: totalPaid, discountAmount: discountAmountInCents, dateCreated, status });
+            });
+        });
         // Add payments to Payments table
-        if (payments) {
-            for (const payment of payments) {
+        if (paymentsInCents) {
+            for (const payment of paymentsInCents) {
                 await new Promise((resolve, reject) => {
-                    database_1.default.run('INSERT INTO Payments (invoiceId, amount, paymentDate, paymentMethod, type, notes) VALUES (?, ?, ?, ?, ?, ?)', [invoice.id, payment.amount, new Date().toISOString(), payment.method, 'Full Payment', 'Payment for sale'], function (err) {
+                    database_1.default.run('INSERT INTO Payments (invoiceId, amount, paymentDate, paymentMethod, type, notes) VALUES (?, ?, ?, ?, ?, ?)', [invoice.jobId, payment.amount, new Date().toISOString(), payment.method, 'Full Payment', 'Payment for sale'], function (err) {
                         if (err)
                             reject(err);
                         else
@@ -123,55 +113,12 @@ router.post('/', async (req, res) => {
             }
         }
         res.status(201).json({
-            "message": "Sale created successfully",
-            "data": { ...sale, invoiceId: invoice.id }
+            "message": "Sale created successfully as a job and invoice",
+            "data": { jobId: job.id, invoiceId: invoice.id }
         });
     }
     catch (error) {
         console.error('Error creating sale:', error);
-        res.status(500).json({ "error": error.message });
-    }
-});
-// Create a new payment
-router.post('/payment', async (req, res) => {
-    const { invoiceId, amount, paymentMethod } = req.body;
-    if (!invoiceId || !amount || !paymentMethod) {
-        return res.status(400).json({ "error": "Invoice ID, amount, and payment method are required" });
-    }
-    try {
-        // Create payment
-        await new Promise((resolve, reject) => {
-            database_1.default.run('INSERT INTO Payments (invoiceId, amount, paymentDate, paymentMethod, type, notes) VALUES (?, ?, ?, ?, ?, ?)', [invoiceId, amount, new Date().toISOString(), paymentMethod, 'Full Payment', 'Payment for invoice'], function (err) {
-                if (err)
-                    reject(err);
-                else
-                    resolve(this.lastID);
-            });
-        });
-        // Update invoice
-        const invoice = await new Promise((resolve, reject) => {
-            database_1.default.get("SELECT * FROM Invoices WHERE id = ?", [invoiceId], (err, row) => {
-                if (err)
-                    reject(err);
-                else
-                    resolve(row);
-            });
-        });
-        const newAmountPaid = invoice.amountPaid + amount;
-        const newStatus = newAmountPaid >= invoice.totalAmount ? 'Paid' : 'Partially Paid';
-        await new Promise((resolve, reject) => {
-            database_1.default.run('UPDATE Invoices SET amountPaid = ?, status = ? WHERE id = ?', [newAmountPaid, newStatus, invoiceId], function (err) {
-                if (err)
-                    reject(err);
-                else
-                    resolve(this.changes);
-            });
-        });
-        res.status(201).json({
-            "message": "Payment created successfully",
-        });
-    }
-    catch (error) {
         res.status(500).json({ "error": error.message });
     }
 });

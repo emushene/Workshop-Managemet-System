@@ -47,8 +47,9 @@ router.post('/', (req, res) => {
         res.status(400).json({ "error": "Missing required fields: part_name, category, common_services, and price" });
         return;
     }
+    const priceInCents = Math.round(price * 100);
     const sql = 'INSERT INTO ServiceItemParts (part_name, category, common_services, price, description) VALUES (?, ?, ?, ?, ?)';
-    const params = [part_name, category, common_services, price, description];
+    const params = [part_name, category, common_services, priceInCents, description];
     database_1.default.run(sql, params, function (err) {
         if (err) {
             res.status(400).json({ "error": err.message });
@@ -56,7 +57,7 @@ router.post('/', (req, res) => {
         }
         res.status(201).json({
             "message": "success",
-            "data": { id: this.lastID, part_name, category, common_services, price, description }
+            "data": { id: this.lastID, part_name, category, common_services, price: priceInCents, description }
         });
     });
 });
@@ -68,8 +69,9 @@ router.put('/:id', (req, res) => {
         res.status(400).json({ "error": "Missing required fields: part_name, category, common_services, and price" });
         return;
     }
+    const priceInCents = Math.round(price * 100);
     const sql = 'UPDATE ServiceItemParts SET part_name = ?, category = ?, common_services = ?, price = ?, description = ? WHERE id = ?';
-    const params = [part_name, category, common_services, price, description, id];
+    const params = [part_name, category, common_services, priceInCents, description, id];
     database_1.default.run(sql, params, function (err) {
         if (err) {
             res.status(400).json({ "error": err.message });
@@ -81,7 +83,7 @@ router.put('/:id', (req, res) => {
         }
         res.json({
             "message": "success",
-            "data": { id: Number(id), part_name, category, common_services, price, description }
+            "data": { id: Number(id), part_name, category, common_services, price: priceInCents, description }
         });
     });
 });

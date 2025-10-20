@@ -12,6 +12,7 @@ router.get('/', (req, res) => {
     const sql = "select * from Customers";
     database_1.default.all(sql, [], (err, rows) => {
         if (err) {
+            console.log(err);
             res.status(400).json({ "error": err.message });
             return;
         }

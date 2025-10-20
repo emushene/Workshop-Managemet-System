@@ -106,9 +106,8 @@ const JobCardPrintPage: React.FC = () => {
         }
     }
 
-    const servicesTotal = job.services?.reduce((acc: number, service: any) => acc + (parseFloat(service.price) || 0), 0) || 0;
-    const partsTotal = parts.reduce((acc: number, part: any) => acc + (part.price * part.quantity), 0) || 0;
-    const grandTotal = servicesTotal + partsTotal;
+
+
 
     return (
         <div className="p-5 print-preview-page">
@@ -182,9 +181,9 @@ const JobCardPrintPage: React.FC = () => {
 
                 <div style={{ textAlign: 'center', marginTop: '20px' }}>
                     <p style={{ textAlign: 'center', marginTop: '20px', fontWeight: '900', fontSize: '12px'}}>TERMS & CONDITIONS</p>
-                    <p style={{ marginTop: '2px', fontSize: '8px'}}>1. 3 Months warranty for Compression.</p>
-                    <p style={{ marginTop: '2px', fontSize: '8px' }}>2. After 3 Months the company is not responsible for any goods!</p>
-                    <p style={{ marginTop: '2px', fontSize: '8px' }}>3. After 3 months the company has the right to sell unclaimed finished work to cover the loss</p>
+                    <p style={{ marginTop: '2px', fontSize: '12px'}}>1. 3 Months warranty for Compression.</p>
+                    <p style={{ marginTop: '2px', fontSize: '12px' }}>2. After 3 Months the company is not responsible for any goods!</p>
+                    <p style={{ marginTop: '2px', fontSize: '12px' }}>3. After 3 months the company has the right to sell unclaimed finished work to cover the loss</p>
                     <br />
                     <br />
                     <br />

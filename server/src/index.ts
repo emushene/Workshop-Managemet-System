@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
 import db from './database';
 import setupDatabase from './setupDatabase';
 
@@ -35,10 +36,23 @@ app.use('/api/sales', salesRoutes);
 app.use('/api/service-item-parts', serviceItemPartsRoutes);
 app.use('/api/vehicles', vehicleRoutes);
 
-// Root route
-app.get('/', (req, res) => {
-  res.send('API is running...');
-});
+// Serve frontend in production
+if (process.env.NODE_ENV === 'production') {
+    const clientBuildPath = path.join(__dirname, '..', '..', 'client', 'dist');
+    app.use(express.static(clientBuildPath));
+
+    // The "catchall" handler for client-side routing
+    app.get('*', (req, res) => {
+        if (!req.path.startsWith('/api/')) {
+            res.sendFile(path.join(clientBuildPath, 'index.html'));
+        }
+    });
+} else {
+    // Root route for development
+    app.get('/', (req, res) => {
+        res.send('API is running in development mode...');
+    });
+}
 
 // Start the server
 app.listen(PORT, () => {
