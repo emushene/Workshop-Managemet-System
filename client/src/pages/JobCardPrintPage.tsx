@@ -149,81 +149,15 @@ const JobCardPrintPage: React.FC = () => {
                     <p className="text-xs">{job.conditionIn || 'N/A'}</p>
                 </div>
 
-                <div className="mb-4 border-b border-dashed pb-2">
-                    <h3 className="font-bold text-xs mb-1">Services:</h3>
-                    {job.services && job.services.length > 0 ? (
-                        <table style={{ width: '100%', fontSize: '12px' }}>
-                            <thead>
-                                <tr>
-                                    <th style={{ textAlign: 'left' }}>Service</th>
-                                    <th style={{ textAlign: 'right' }}>Price</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {job.services.map((service: any, index: number) => (
-                                    <tr key={index}>
-                                        <td>{service.part_name}</td>
-                                        <td style={{ textAlign: 'right' }}>{service.price ? service.price.toFixed(2) : 'N/A'}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    ) : (
-                        <p className="text-xs">No services added yet.</p>
-                    )}
-                </div>
-
-                <div className="mb-4 border-b border-dashed pb-2">
-                    <h3 className="font-bold text-xs mb-1">Parts Used:</h3>
-                    {parts.length > 0 ? (
-                        <table style={{ width: '100%', fontSize: '12px' }}>
-                            <thead>
-                                <tr>
-                                    <th style={{ textAlign: 'left' }}>Part</th>
-                                    <th style={{ textAlign: 'center' }}>Qty</th>
-                                    <th style={{ textAlign: 'right' }}>Price</th>
-                                    <th style={{ textAlign: 'right' }}>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {parts.map((part: any, index: number) => (
-                                    <tr key={index}>
-                                        <td>{part.name}</td>
-                                        <td style={{ textAlign: 'center' }}>{part.quantity}</td>
-                                        <td style={{ textAlign: 'right' }}>{part.price ? part.price.toFixed(2) : 'N/A'}</td>
-                                        <td style={{ textAlign: 'right' }}>{(part.price * part.quantity).toFixed(2)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    ) : (
-                        <p className="text-xs">No parts used.</p>
-                    )}
-                </div>
+                
+            
 
                 <div className="mb-4 border-b border-dashed pb-2">
                     <h3 className="font-bold text-xs mb-1">Technician Notes:</h3>
                     <p className="text-xs">{job.technicianNotes || 'N/A'}</p>
                 </div>
 
-                <div className="mt-4">
-                    <table style={{ width: '100%', fontSize: '12px' }}>
-                        <tfoot>
-                            <tr>
-                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>Services Total:</td>
-                                <td style={{ textAlign: 'right' }}>{servicesTotal.toFixed(2)}</td>
-                            </tr>
-                            <tr>
-                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>Parts Total:</td>
-                                <td style={{ textAlign: 'right' }}>{partsTotal.toFixed(2)}</td>
-                            </tr>
-                            <tr>
-                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>Grand Total:</td>
-                                <td style={{ textAlign: 'right' }}>{grandTotal.toFixed(2)}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
+                
 
                 <div style={{ textAlign: 'center', marginTop: '20px' }}>
                     <p style={{ textAlign: 'center', marginTop: '20px', textDecoration: 'bold' }}>TERMS & CONDITIONS</p>
