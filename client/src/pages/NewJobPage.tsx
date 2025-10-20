@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCustomers, createCustomer, getServiceItemParts, createJob, getVehicles } from '../services/api';
+import { getCustomers, createCustomer, createJob, getVehicles } from '../services/api';
+import { SERVICE_CATEGORIES, MISC_SERVICE } from '../constants';
 
 // Interfaces
 interface Customer {
@@ -16,31 +17,33 @@ interface Vehicle {
   model: string;
 }
 
-interface ServicePart {
+interface SelectedService {
   id: number;
-  part_name: string;
-  price: number;
   category: string;
-  description: string;
+  instructions: string[];
+  price: string; // Store price as a string for direct input control
 }
 
 const NewJobPage: React.FC = () => {
   // State Management
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [serviceParts, setServiceParts] = useState<ServicePart[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   
   // Form State
   const [jobType, setJobType] = useState(''); // VEHICLE or PART
   const [selectedCustomer, setSelectedCustomer] = useState('');
-  const [selectedServices, setSelectedServices] = useState<ServicePart[]>([]);
-  const [serviceToAdd, setServiceToAdd] = useState('');
+  const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
   const [selectedMake, setSelectedMake] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
   const [selectedVehicleId, setSelectedVehicleId] = useState('');
   
   const [itemDescription, setItemDescription] = useState('');
   const [initialCondition, setInitialCondition] = useState('');
+
+  // New Service selection state
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [instructions, setInstructions] = useState<Record<string, boolean>>({});
+  const [miscInstruction, setMiscInstruction] = useState('');
 
   // Vehicle-specific state
   const [vehicleYear, setVehicleYear] = useState('');
@@ -64,13 +67,11 @@ const NewJobPage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [customersRes, partsRes, vehiclesRes] = await Promise.all([
+        const [customersRes, vehiclesRes] = await Promise.all([
             getCustomers(), 
-            getServiceItemParts(),
             getVehicles()
         ]);
         setCustomers(customersRes.data.data || []);
-        setServiceParts(partsRes.data.data || []);
         setVehicles(vehiclesRes.data.data || []);
       } catch (err) {
         setError('Failed to fetch initial data.');
@@ -91,39 +92,79 @@ const NewJobPage: React.FC = () => {
     }
   }, [selectedMake, selectedModel, vehicles]);
 
+  useEffect(() => {
+    const description = selectedServices
+      .map(service => `${service.category}: ${service.instructions.join(', ')}`)
+      .join('; ');
+    setItemDescription(description);
+  }, [selectedServices]);
 
-
-  const makes = useMemo(() => {
-    return [...new Set(vehicles.map(v => v.make))];
-  }, [vehicles]);
-
+  const makes = useMemo(() => [...new Set(vehicles.map(v => v.make))], [vehicles]);
   const models = useMemo(() => {
     if (!selectedMake) return [];
     return vehicles.filter(v => v.make === selectedMake).map(v => v.model);
   }, [selectedMake, vehicles]);
 
-
   const grandTotal = useMemo(() => {
-    return selectedServices.reduce((sum, service) => sum + service.price, 0);
+    return selectedServices.reduce((sum, service) => sum + (parseFloat(service.price) || 0), 0);
   }, [selectedServices]);
 
   // Handlers
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setInstructions({});
+    setMiscInstruction('');
+  };
+
+  const handleInstructionChange = (instruction: string) => {
+    setInstructions(prev => ({ ...prev, [instruction]: !prev[instruction] }));
+  };
+
   const handleAddService = () => {
-    if (!serviceToAdd) return;
-    const service = serviceParts.find(s => s.id === parseInt(serviceToAdd));
-    if (service && !selectedServices.find(s => s.id === service.id)) {
-      setSelectedServices([...selectedServices, service]);
+    if (!selectedCategory) return;
+
+    const selectedInstructions = Object.entries(instructions)
+      .filter(([, isSelected]) => isSelected)
+      .map(([instruction]) => {
+        if (instruction === MISC_SERVICE && miscInstruction) {
+          return miscInstruction;
+        }
+        return instruction;
+      });
+
+    if (selectedInstructions.length === 0) {
+      setError('Please select at least one instruction for the category.');
+      return;
     }
-    setServiceToAdd('');
+    
+    if (selectedServices.some(s => s.category === selectedCategory)) {
+        setError(`Category "${selectedCategory}" has already been added.`);
+        return;
+    }
+
+    const newService: SelectedService = {
+      id: Date.now(),
+      category: selectedCategory,
+      instructions: selectedInstructions,
+      price: '', // Default price to an empty string
+    };
+
+    setSelectedServices([...selectedServices, newService]);
+    setSelectedCategory('');
+    setInstructions({});
+    setMiscInstruction('');
+    setError('');
   };
 
   const handleRemoveService = (serviceId: number) => {
     setSelectedServices(selectedServices.filter(s => s.id !== serviceId));
   };
 
-  const handleServicePriceChange = (serviceId: number, newPrice: number) => {
+  const handleServicePriceChange = (serviceId: number, newPrice: string) => {
+    // Allow only numbers and a single decimal point
+    const sanitizedPrice = newPrice.replace(/[^\d.]/g, '');
     setSelectedServices(selectedServices.map(s => 
-      s.id === serviceId ? { ...s, price: isNaN(newPrice) ? 0 : newPrice } : s
+      s.id === serviceId ? { ...s, price: sanitizedPrice } : s
     ));
   };
 
@@ -161,7 +202,7 @@ const NewJobPage: React.FC = () => {
     const jobData = { 
       customerId: selectedCustomer, 
       itemDescription: itemDescription,
-      jobType: jobType, // Correctly set from state
+      jobType: jobType,
       status: 'Booked',
       vehicleId: selectedVehicleId,
       vehicleYear: vehicleYear,
@@ -169,7 +210,12 @@ const NewJobPage: React.FC = () => {
       serialNumber: jobType === 'PART' ? serialNumber : '',
       conditionIn: initialCondition,
       dateBookedIn: new Date().toISOString().split('T')[0],
-      services: selectedServices.map(s => ({ id: s.id, price: s.price }))
+      // Convert price string to cents for backend
+      services: selectedServices.map(({ category, instructions, price }) => ({
+        category,
+        instructions,
+        price: Math.round((parseFloat(price) || 0) * 100),
+      }))
     };
 
     try {
@@ -237,36 +283,78 @@ const NewJobPage: React.FC = () => {
               <fieldset className="border p-4 rounded-md">
                 <legend className="text-lg font-semibold px-2">Item Details</legend>
                 
-                <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-bold mb-2">Service / Item*</label>
-                  <div className="flex items-center">
-                    <select value={serviceToAdd} onChange={(e) => setServiceToAdd(e.target.value)} className="flex-grow shadow-sm border rounded w-full py-2 px-3">
-                      <option value="" disabled>-- Select a service to add --</option>
-                      {serviceParts.map(part => (
-                        <option key={part.id} value={part.id}>{part.part_name} ({part.category})</option>
+                <div className="bg-gray-50 p-4 rounded-md grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Column 1: Category Selection */}
+                  <div>
+                    <label className="block text-gray-700 text-sm font-bold mb-2">Service Category*</label>
+                    <select value={selectedCategory} onChange={(e) => handleCategoryChange(e.target.value)} className="shadow-sm border rounded w-full py-2 px-3">
+                      <option value="" disabled>-- Select a category --</option>
+                      {Object.keys(SERVICE_CATEGORIES).map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
                       ))}
                     </select>
-                    <button type="button" onClick={handleAddService} className="ml-3 flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Add</button>
+                  </div>
+
+                  {/* Column 2: Instructions */}
+                  <div>
+                    {selectedCategory && (
+                      <>
+                        <label className="block text-gray-700 text-sm font-bold mb-2">Instructions for Technician*</label>
+                        <div className="border p-3 rounded-md bg-white">
+                          {(SERVICE_CATEGORIES[selectedCategory as keyof typeof SERVICE_CATEGORIES] || []).map(instruction => (
+                            <div key={instruction} className="flex items-center my-2">
+                              <input
+                                type="checkbox"
+                                id={`instr-${instruction}`}
+                                checked={!!instructions[instruction]}
+                                onChange={() => handleInstructionChange(instruction)}
+                                className="mr-2"
+                              />
+                              <label htmlFor={`instr-${instruction}`}>{instruction}</label>
+                              {instruction === MISC_SERVICE && instructions[MISC_SERVICE] && (
+                                <input
+                                  type="text"
+                                  value={miscInstruction}
+                                  onChange={(e) => setMiscInstruction(e.target.value)}
+                                  className="ml-4 shadow-sm border rounded py-1 px-2 flex-grow"
+                                  placeholder="Describe miscellaneous work..."
+                                />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        <button type="button" onClick={handleAddService} className="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                          Add Service Category
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
 
                 {selectedServices.length > 0 && (
-                  <div className="mb-4">
-                    <h4 className="font-semibold mb-2">Selected Services</h4>
-                    <ul className="list-disc list-inside bg-gray-50 p-3 rounded-md">
+                  <div className="my-6">
+                    <h4 className="font-semibold mb-2 text-lg">Job Items</h4>
+                    <ul className="space-y-3">
                       {selectedServices.map(service => (
-                        <li key={service.id} className="flex justify-between items-center">
-                          <span>{service.part_name}</span>
-                          <div className="flex items-center">
-                            <span className="mr-2">R</span>
-                            <input 
-                              type="number"
-                              step="0.01"
-                              value={(service.price / 100).toFixed(2)}
-                              onChange={(e) => handleServicePriceChange(service.id, parseFloat(e.target.value) * 100)}
-                              className="shadow-sm border rounded w-24 py-1 px-2 text-gray-700"
-                            />
-                            <button type="button" onClick={() => handleRemoveService(service.id)} className="ml-4 text-red-500 hover:text-red-700">Remove</button>
+                        <li key={service.id} className="bg-white shadow-sm border rounded-lg p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                                <h5 className="font-bold text-lg">{service.category}</h5>
+                                <p className="text-sm text-gray-600">
+                                    Instructions: {service.instructions.join(', ')}
+                                </p>
+                            </div>
+                            <div className="flex items-center">
+                                <span className="mr-2 font-bold">R</span>
+                                <input 
+                                  type="text"
+                                  value={service.price}
+                                  onChange={(e) => handleServicePriceChange(service.id, e.target.value)}
+                                  className="shadow-sm border rounded w-32 py-1 px-2 text-gray-700 text-right"
+                                  placeholder="0.00"
+                                />
+                                <button type="button" onClick={() => handleRemoveService(service.id)} className="ml-4 text-red-500 hover:text-red-700 font-semibold">Remove</button>
+                            </div>
                           </div>
                         </li>
                       ))}
@@ -275,8 +363,8 @@ const NewJobPage: React.FC = () => {
                 )}
 
                 <div>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">Overall Item Description</label>
-                  <input type="text" value={itemDescription} onChange={(e) => setItemDescription(e.target.value)} className="shadow-sm border rounded w-full py-2 px-3" placeholder="e.g., White Toyota Hilux 2.4L" />
+                  <label className="block text-gray-700 text-sm font-bold mb-2 mt-6">Overall Item Description</label>
+                  <input type="text" value={itemDescription} readOnly className="shadow-sm border rounded w-full py-2 px-3 bg-gray-100" placeholder="Generated from selected job items..." />
                 </div>
 
                 {(jobType === 'VEHICLE' || jobType === 'PART') && (
@@ -313,7 +401,6 @@ const NewJobPage: React.FC = () => {
 
               <fieldset className="border p-4 rounded-md">
                 <legend className="text-lg font-semibold px-2">Scheduling & Notes</legend>
-
                 <div className="mt-4">
                   <label className="block text-gray-700 text-sm font-bold mb-2">Initial Condition / Complaint</label>
                   <textarea value={initialCondition} onChange={(e) => setInitialCondition(e.target.value)} rows={3} className="shadow-sm border rounded w-full py-2 px-3"></textarea>
@@ -325,28 +412,26 @@ const NewJobPage: React.FC = () => {
                     <table className="w-full text-sm text-left text-gray-500">
                         <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                             <tr>
-                                <th scope="col" className="px-6 py-3">Description</th>
-                                <th scope="col" className="px-6 py-3 text-right">Quantity</th>
-                                <th scope="col" className="px-6 py-3 text-right">Unit Price</th>
-                                <th scope="col" className="px-6 py-3 text-right">Total</th>
+                                <th scope="col" className="px-6 py-3">Item/Category</th>
+                                <th scope="col" className="px-6 py-3">Instructions</th>
+                                <th scope="col" className="px-6 py-3 text-right">Price</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {selectedServices.map((service, index) => (
-                                <tr key={`service-${index}`} className="bg-white border-b">
+                            {selectedServices.map((service) => (
+                                <tr key={service.id} className="bg-white border-b">
                                     <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                                        {service.part_name} (Service)
+                                        {service.category}
                                     </th>
-                                    <td className="px-6 py-4 text-right">1</td>
-                                    <td className="px-6 py-4 text-right">{(service.price / 100).toFixed(2)}</td>
-                                    <td className="px-6 py-4 text-right">{(service.price / 100).toFixed(2)}</td>
+                                    <td className="px-6 py-4">{service.instructions.join(', ')}</td>
+                                    <td className="px-6 py-4 text-right">{(parseFloat(service.price) || 0).toFixed(2)}</td>
                                 </tr>
                             ))}
                         </tbody>
                         <tfoot>
                             <tr className="font-semibold text-gray-900">
-                                <th scope="row" colSpan={3} className="px-6 py-3 text-base text-right">Grand Total</th>
-                                <td className="px-6 py-3 text-base text-right">{(grandTotal / 100).toFixed(2)} ZAR</td>
+                                <th scope="row" colSpan={2} className="px-6 py-3 text-base text-right">Grand Total</th>
+                                <td className="px-6 py-3 text-base text-right">{grandTotal.toFixed(2)} ZAR</td>
                             </tr>
                         </tfoot>
                     </table>

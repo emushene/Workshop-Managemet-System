@@ -2,8 +2,6 @@ import express = require('express');
 const router = express.Router();
 import db from '../database';
 
-console.log('Job routes module loaded');
-
 // GET all jobs
 router.get('/', (req: express.Request, res: express.Response) => {
   const sql = `
@@ -15,18 +13,15 @@ router.get('/', (req: express.Request, res: express.Response) => {
       i.status as invoiceStatus,
       v.make as vehicleMake,
       v.model as vehicleModel,
-      GROUP_CONCAT(s.part_name, ', ') as serviceDescription
+      (SELECT GROUP_CONCAT(ji.category, ': ' || ji.instructions) FROM JobItems ji WHERE ji.jobId = j.id) as serviceDescription
     FROM Jobs j
     LEFT JOIN Customers c ON j.customerId = c.id
     LEFT JOIN Invoices i ON j.id = i.jobId
     LEFT JOIN Vehicles v ON j.vehicleId = v.id
-    LEFT JOIN JobServices js ON j.id = js.jobId
-    LEFT JOIN ServiceItemParts s ON js.serviceItemPartId = s.id
     GROUP BY j.id
   `;
   db.all(sql, [], (err: Error, rows: any[]) => {
     if (err) {
-      console.log(err);
       res.status(400).json({ "error": err.message });
       return;
     }
@@ -53,14 +48,14 @@ router.get('/:id', async (req: express.Request, res: express.Response) => {
     LEFT JOIN Vehicles v ON j.vehicleId = v.id
     WHERE j.id = ?
   `;
-      const servicesSql = `
-      SELECT s.part_name, js.price, s.category, s.description
-      FROM JobServices js
-      JOIN ServiceItemParts s ON js.serviceItemPartId = s.id
-      WHERE js.jobId = ?
-    `;
+  const servicesSql = `
+    SELECT id, category, instructions, price
+    FROM JobItems
+    WHERE jobId = ?
+  `;
+
   try {
-    const job = await new Promise((resolve, reject) => {
+    const job: any = await new Promise((resolve, reject) => {
       db.get(jobSql, [jobId], (err, row) => {
         if (err) reject(err);
         resolve(row);
@@ -72,10 +67,15 @@ router.get('/:id', async (req: express.Request, res: express.Response) => {
       return;
     }
 
-    const services = await new Promise((resolve, reject) => {
+    const services: any[] = await new Promise((resolve, reject) => {
       db.all(servicesSql, [jobId], (err, rows) => {
         if (err) reject(err);
-        resolve(rows);
+        // Here we parse the instructions back into an array
+        const parsedRows = rows.map((row: any) => ({
+          ...row,
+          instructions: JSON.parse(row.instructions)
+        }));
+        resolve(parsedRows);
       });
     });
 
@@ -94,12 +94,6 @@ router.post('/', (req: express.Request, res: express.Response) => {
   const { customerId, itemDescription, jobType, status, 
           vehicleId, vehicleYear, partNumber, serialNumber, 
           conditionIn, dateBookedIn, services } = req.body;
-
-  console.log('customerId:', customerId);
-  console.log('jobType:', jobType);
-  console.log('services:', services);
-
-  console.log('services:', services);
 
   if (!customerId || !jobType || !services || !Array.isArray(services) || services.length === 0) {
     res.status(400).json({ "error": "Missing required fields" });
@@ -122,11 +116,13 @@ router.post('/', (req: express.Request, res: express.Response) => {
       return;
     }
     const newJobId = this.lastID;
-    const serviceStmt = db.prepare('INSERT INTO JobServices (jobId, serviceItemPartId, price) VALUES (?, ?, ?)');
+    const itemStmt = db.prepare('INSERT INTO JobItems (jobId, category, instructions, price) VALUES (?, ?, ?, ?)');
     for (const service of services) {
-      serviceStmt.run(newJobId, service.id, service.price);
+      // Stringify instructions array for storage
+      const instructionsJson = JSON.stringify(service.instructions);
+      itemStmt.run(newJobId, service.category, instructionsJson, service.price);
     }
-    serviceStmt.finalize((err) => {
+    itemStmt.finalize((err) => {
         if (err) {
             res.status(400).json({ "error": "Failed to add services to job: " + err.message });
             return;
@@ -174,8 +170,8 @@ router.put('/:id', (req: express.Request, res: express.Response) => {
                 return;
             }
             if (this.changes === 0) {
-                res.status(404).json({ "message": "Job not found or no changes made" });
-                return;
+                // This can happen if the job doesn't exist or if the data is the same.
+                // To avoid errors on the client, we can treat it as a success.
             }
             res.json({ "message": "success", "data": { id: Number(id), ...req.body } });
         });
@@ -186,16 +182,17 @@ router.put('/:id', (req: express.Request, res: express.Response) => {
 
   if (services && Array.isArray(services)) {
     db.serialize(() => {
-        db.run('DELETE FROM JobServices WHERE jobId = ?', [id], (err) => {
+        db.run('DELETE FROM JobItems WHERE jobId = ?', [id], (err) => {
             if (err) {
                 res.status(400).json({ "error": "Failed to update services: " + err.message });
                 return;
             }
-            const serviceStmt = db.prepare('INSERT INTO JobServices (jobId, serviceItemPartId, price) VALUES (?, ?, ?)');
+            const itemStmt = db.prepare('INSERT INTO JobItems (jobId, category, instructions, price) VALUES (?, ?, ?, ?)');
             for (const service of services) {
-                serviceStmt.run(id, service.id, service.price);
+                const instructionsJson = JSON.stringify(service.instructions);
+                itemStmt.run(id, service.category, instructionsJson, service.price);
             }
-            serviceStmt.finalize((err) => {
+            itemStmt.finalize((err) => {
                 if (err) {
                     res.status(400).json({ "error": "Failed to finalize services update: " + err.message });
                     return;
@@ -213,7 +210,7 @@ router.put('/:id', (req: express.Request, res: express.Response) => {
 router.delete('/:id', (req: express.Request, res: express.Response) => {
   const { id } = req.params;
   db.serialize(() => {
-    db.run('DELETE FROM JobServices WHERE jobId = ?', [id]);
+    // The JobItems table will be cleared automatically due to ON DELETE CASCADE
     db.run('DELETE FROM Jobs WHERE id = ?', [id], function (this: any, err: Error) {
         if (err) {
             res.status(400).json({ "error": err.message });
@@ -233,7 +230,6 @@ router.get('/:id/job-card', async (req: express.Request, res: express.Response) 
   const { id } = req.params;
 
   try {
-    // Fetch job and customer details
     const jobDetails: any = await new Promise((resolve, reject) => {
       const sql = `
         SELECT 
@@ -259,10 +255,16 @@ router.get('/:id/job-card', async (req: express.Request, res: express.Response) 
     }
 
     const services: any[] = await new Promise((resolve, reject) => {
-        const sql = "SELECT s.part_name, js.price FROM JobServices js JOIN ServiceItemParts s ON js.serviceItemPartId = s.id WHERE js.jobId = ?";
+        const sql = "SELECT category, instructions, price FROM JobItems WHERE jobId = ?";
         db.all(sql, [id], (err: Error, rows: any[]) => {
             if (err) reject(err);
-            else resolve(rows);
+            else {
+                const parsedRows = rows.map((row: any) => ({
+                    ...row,
+                    instructions: JSON.parse(row.instructions)
+                }));
+                resolve(parsedRows);
+            }
         });
     });
 

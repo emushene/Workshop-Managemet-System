@@ -15,6 +15,9 @@ const seed = () => {
     }
 
     db.serialize(() => {
+      // Enable foreign keys to ensure proper deletion order
+      db.run('PRAGMA foreign_keys = ON;');
+
       // Create tables
       const createTablesQueries = [
         `CREATE TABLE IF NOT EXISTS Users (
@@ -50,16 +53,16 @@ const seed = () => {
           dateBookedIn TEXT,
           technicianNotes TEXT,
           updates TEXT,
-          FOREIGN KEY (customerId) REFERENCES Customers (id),
-          FOREIGN KEY (vehicleId) REFERENCES Vehicles (id)
+          FOREIGN KEY (customerId) REFERENCES Customers (id) ON DELETE SET NULL,
+          FOREIGN KEY (vehicleId) REFERENCES Vehicles (id) ON DELETE SET NULL
         )`,
-        `CREATE TABLE IF NOT EXISTS JobServices (
+        `CREATE TABLE IF NOT EXISTS JobItems (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          jobId INTEGER,
-          serviceItemPartId INTEGER,
-          price REAL,
-          FOREIGN KEY (jobId) REFERENCES Jobs (id),
-          FOREIGN KEY (serviceItemPartId) REFERENCES ServiceItemParts (id)
+          jobId INTEGER NOT NULL,
+          category TEXT NOT NULL,
+          instructions TEXT NOT NULL, -- Stored as JSON string
+          price INTEGER NOT NULL, -- Stored in cents
+          FOREIGN KEY (jobId) REFERENCES Jobs (id) ON DELETE CASCADE
         )`,
         `CREATE TABLE IF NOT EXISTS Inventory (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -72,8 +75,8 @@ const seed = () => {
             inventoryId INTEGER,
             quantityUsed INTEGER NOT NULL,
             PRIMARY KEY (jobId, inventoryId),
-            FOREIGN KEY (jobId) REFERENCES Jobs (id),
-            FOREIGN KEY (inventoryId) REFERENCES Inventory (id)
+            FOREIGN KEY (jobId) REFERENCES Jobs (id) ON DELETE CASCADE,
+            FOREIGN KEY (inventoryId) REFERENCES Inventory (id) ON DELETE CASCADE
         )`,
         `CREATE TABLE IF NOT EXISTS Invoices (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -83,15 +86,7 @@ const seed = () => {
           discountAmount REAL NOT NULL DEFAULT 0,
           dateCreated TEXT NOT NULL,
           status TEXT CHECK(status IN ('Unpaid', 'Partially Paid', 'Paid', 'Overdue', 'Refunded')) NOT NULL DEFAULT 'Unpaid',
-          FOREIGN KEY (jobId) REFERENCES Jobs (id)
-        )`,
-        `CREATE TABLE IF NOT EXISTS ServiceItemParts (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          part_name TEXT NOT NULL,
-          category TEXT NOT NULL,
-          common_services TEXT NOT NULL,
-          price REAL NOT NULL,
-          description TEXT
+          FOREIGN KEY (jobId) REFERENCES Jobs (id) ON DELETE SET NULL
         )`,
         `CREATE TABLE IF NOT EXISTS Payments (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -102,7 +97,7 @@ const seed = () => {
           transactionId TEXT,
           type TEXT CHECK(type IN ('Deposit', 'Full Payment', 'Partial Payment', 'Return')) NOT NULL,
           notes TEXT,
-          FOREIGN KEY (invoiceId) REFERENCES Invoices (id)
+          FOREIGN KEY (invoiceId) REFERENCES Invoices (id) ON DELETE CASCADE
         )`,
         `CREATE TABLE IF NOT EXISTS Sales (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -112,7 +107,7 @@ const seed = () => {
           discountAmount REAL NOT NULL DEFAULT 0,
           dateCreated TEXT NOT NULL,
           status TEXT CHECK(status IN ('Unpaid', 'Partially Paid', 'Paid', 'Overdue', 'Refunded')) NOT NULL DEFAULT 'Unpaid',
-          FOREIGN KEY (customerId) REFERENCES Customers (id)
+          FOREIGN KEY (customerId) REFERENCES Customers (id) ON DELETE SET NULL
         )`,
         `CREATE TABLE IF NOT EXISTS SaleInventory (
           saleId INTEGER,
@@ -120,8 +115,8 @@ const seed = () => {
           quantitySold INTEGER NOT NULL,
           priceAtSale REAL NOT NULL,
           PRIMARY KEY (saleId, inventoryId),
-          FOREIGN KEY (saleId) REFERENCES Sales (id),
-          FOREIGN KEY (inventoryId) REFERENCES Inventory (id)
+          FOREIGN KEY (saleId) REFERENCES Sales (id) ON DELETE CASCADE,
+          FOREIGN KEY (inventoryId) REFERENCES Inventory (id) ON DELETE CASCADE
         )`
       ];
 
@@ -133,11 +128,28 @@ const seed = () => {
         });
       });
 
-      // Clear all data
-      const tablesToClear = ['Jobs', 'Customers', 'Invoices', 'JobInventory', 'Payments', 'Sales', 'SaleInventory', 'Inventory', 'ServiceItemParts', 'Vehicles', 'JobServices'];
+      // Clear all data in the correct order to respect foreign key constraints
+      const tablesToClear = [
+        'Payments',
+        'Invoices',
+        'JobItems',
+        'JobInventory',
+        'SaleInventory',
+        'Sales',
+        'Jobs',
+        'Customers',
+        'Vehicles',
+        'Inventory',
+        'Users'
+      ];
+
       tablesToClear.forEach(table => {
-        db.run(`DELETE FROM ${table}`);
-        db.run(`DELETE FROM sqlite_sequence WHERE name = '${table}'`);
+        db.run(`DELETE FROM ${table}`, (err) => {
+            if (err) console.error(`Error clearing table ${table}:`, err.message)
+        });
+        db.run(`DELETE FROM sqlite_sequence WHERE name = '${table}'`, (err) => {
+            if (err) console.error(`Error resetting sequence for table ${table}:`, err.message)
+        });
       });
 
       console.log('All tables cleared.');
@@ -156,16 +168,6 @@ const seed = () => {
       vehiclesData.forEach((v: { make: string, model: string }) => vehicleStmt.run(v.make, v.model));
       vehicleStmt.finalize();
       console.log('Vehicles seeded.');
-
-      // 3. Seed ServiceItemParts from jobs.json
-      const jobsPath = path.join(__dirname, 'jobs.json');
-      const jobsData = JSON.parse(fs.readFileSync(jobsPath, 'utf8'));
-      const serviceItemPartStmt = db.prepare("INSERT OR IGNORE INTO ServiceItemParts (part_name, category, common_services, price, description) VALUES (?, ?, ?, ?, ?)");
-      jobsData.forEach((s: { service_name: string, category: string, description: string, price: number }) => {
-        serviceItemPartStmt.run(s.service_name, s.category, '', s.price, s.description);
-      });
-      serviceItemPartStmt.finalize();
-      console.log('Services seeded.');
 
       console.log('Database reset and seeding complete.');
 
