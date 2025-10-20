@@ -132,8 +132,8 @@ const InvoicePrintPage: React.FC = () => {
                 <tr key={`service-${index}`}>
                   <td>{service.part_name}</td>
                   <td style={{ textAlign: 'right' }}>1</td>
-                  <td style={{ textAlign: 'right' }}>{service.price.toFixed(2)}</td>
-                  <td style={{ textAlign: 'right' }}>{service.price.toFixed(2)}</td>
+                  <td style={{ textAlign: 'right' }}>{(service.price / 100).toFixed(2)}</td>
+                  <td style={{ textAlign: 'right' }}>{(service.price / 100).toFixed(2)}</td>
                 </tr>
               ))}
 
@@ -141,8 +141,8 @@ const InvoicePrintPage: React.FC = () => {
                 <tr key={`part-${index}`}>
                   <td>{part.name}</td>
                   <td style={{ textAlign: 'right' }}>{part.quantity}</td>
-                  <td style={{ textAlign: 'right' }}>{part.price.toFixed(2)}</td>
-                  <td style={{ textAlign: 'right' }}>{(part.price * part.quantity).toFixed(2)}</td>
+                  <td style={{ textAlign: 'right' }}>{(part.price / 100).toFixed(2)}</td>
+                  <td style={{ textAlign: 'right' }}>{((part.price * part.quantity) / 100).toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
@@ -152,23 +152,23 @@ const InvoicePrintPage: React.FC = () => {
         {/* Totals */}
         <div className="text-right mt-4 mr-6">
           <p>
-            <strong>Subtotal:</strong> {(invoice.totalAmount ?? 0).toFixed(2)}
+            <strong>Subtotal:</strong> {((invoice.totalAmount ?? 0) / 100).toFixed(2)}
           </p>
           <p>
-            <strong>Discount:</strong> {(invoice.discountAmount ?? 0).toFixed(2)}
+            <strong>Discount:</strong> {((invoice.discountAmount ?? 0) / 100).toFixed(2)}
           </p>
           <p>
             <strong>Total:</strong>{' '}
-            {((invoice.totalAmount ?? 0) - (invoice.discountAmount ?? 0)).toFixed(2)}
+            {(((invoice.totalAmount ?? 0) - (invoice.discountAmount ?? 0)) / 100).toFixed(2)}
           </p>
           <p>
-            <strong>Amount Paid:</strong> {(invoice.amountPaid ?? 0).toFixed(2)}
+            <strong>Amount Paid:</strong> {((invoice.amountPaid ?? 0) / 100).toFixed(2)}
           </p>
           <p>
             <strong>Balance Due:</strong>{' '}
-            {((invoice.totalAmount ?? 0) -
+            {(((invoice.totalAmount ?? 0) -
               (invoice.discountAmount ?? 0) -
-              (invoice.amountPaid ?? 0)
+              (invoice.amountPaid ?? 0)) / 100
             ).toFixed(2)}
           </p>
         </div>
