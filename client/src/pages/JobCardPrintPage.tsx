@@ -106,7 +106,7 @@ const JobCardPrintPage: React.FC = () => {
         }
     }
 
-    const servicesTotal = job.services?.reduce((acc: number, service: any) => acc + service.price, 0) || 0;
+    const servicesTotal = job.services?.reduce((acc: number, service: any) => acc + (parseFloat(service.price) || 0), 0) || 0;
     const partsTotal = parts.reduce((acc: number, part: any) => acc + (part.price * part.quantity), 0) || 0;
     const grandTotal = servicesTotal + partsTotal;
 
@@ -153,11 +153,42 @@ const JobCardPrintPage: React.FC = () => {
             
 
                 <div className="mb-4 border-b border-dashed pb-2">
+                    <h3 className="font-bold text-xs mb-1">Work To Be Done:</h3>
+                    {job.services && job.services.length > 0 ? (
+                        <div>
+                            {job.services.map((service: any, index: number) => (
+                                <div key={service.id} className={index > 0 ? 'mt-3 pt-3 border-t border-dashed' : ''}>
+                                    <h4 className="font-bold">{service.category}</h4>
+                                    <ul className="list-disc list-inside pl-2 text-xs">
+                                        {service.instructions.map((instruction: string, i: number) => (
+                                            <li key={i}>{instruction}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-xs">No services added yet.</p>
+                    )}
+                </div>
+
+                <div className="mb-4 border-b border-dashed pb-2">
                     <h3 className="font-bold text-xs mb-1">Technician Notes:</h3>
                     <p className="text-xs">{job.technicianNotes || 'N/A'}</p>
                 </div>
 
                 
+
+                <div className="mt-4">
+                    <table style={{ width: '100%', fontSize: '12px' }}>
+                        <tfoot>
+                            <tr>
+                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>Services Total:</td>
+                                <td style={{ textAlign: 'right' }}>{servicesTotal.toFixed(2)}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
 
                 <div style={{ textAlign: 'center', marginTop: '20px' }}>
                     <p style={{ textAlign: 'center', marginTop: '20px', textDecoration: 'bold' }}>TERMS & CONDITIONS</p>
