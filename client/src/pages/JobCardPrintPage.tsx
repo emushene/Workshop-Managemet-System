@@ -115,10 +115,9 @@ const JobCardPrintPage: React.FC = () => {
             <div className="printable-area bg-white p-8 mx-auto shadow-md print:p-1 print:shadow-none" style={{ width: '80mm', fontFamily: 'monospace', padding: '10px' }}>
                 <div className="text-center mb-4">
                     <img src={logo} alt="Company Logo" style={{ width: '60px', margin: '0 auto' }} />
-                    <h2 style={{ textAlign: 'center', margin: '0' }}>DA MASIH MOTOR ENGINEERING</h2>
+                    <h2 style={{ textAlign: 'center', margin: '0', fontWeight: '900', fontSize: '16px'}}><span style={{fontSize: '14px'}}>DA</span> MASIH MOTOR ENGINEERING</h2>
                     <p style={{ textAlign: 'center', margin: '0' }}>409 Rotweiller Road, Mayibuye-Tembisa</p>
-                    <p style={{ textAlign: 'center', margin: '0' }}>Tel: 081 527 6080</p>
-                    <p style={{ textAlign: 'center', margin: '0' }}>Tel: 010 335 0492</p>
+                    <p style={{ textAlign: 'center', margin: '0' }}>Tel: 081 527 6080 / 010 335 0492</p>
                     <p style={{ textAlign: 'center', margin: '0' }}>www.masihmotoreng.co.za</p>
                     <hr style={{ borderTop: '1px dashed black', margin: '10px 0' }} />
                     <h1 className="text-lg font-bold">Job Card #{job.id}</h1>
@@ -182,14 +181,14 @@ const JobCardPrintPage: React.FC = () => {
           
 
                 <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                    <p style={{ textAlign: 'center', marginTop: '20px', textDecoration: 'bold' }}>TERMS & CONDITIONS</p>
-                    <p style={{ marginTop: '2px' }}>1. 3 Months warranty for each and everyjob, excluding the Crankshaft & Overheatings.</p>
-                    <p style={{ marginTop: '2px' }}>2. After 3 Months the company is not responsible for any goods!</p>
-                    <p style={{ marginTop: '2px' }}>3. After 3 months the company has the right to sell unclaimed finished work to cover the loss</p>
+                    <p style={{ textAlign: 'center', marginTop: '20px', fontWeight: '900', fontSize: '12px'}}>TERMS & CONDITIONS</p>
+                    <p style={{ marginTop: '2px', fontSize: '8px'}}>1. 3 Months warranty for Compression.</p>
+                    <p style={{ marginTop: '2px', fontSize: '8px' }}>2. After 3 Months the company is not responsible for any goods!</p>
+                    <p style={{ marginTop: '2px', fontSize: '8px' }}>3. After 3 months the company has the right to sell unclaimed finished work to cover the loss</p>
                     <br />
                     <br />
                     <br />
-                    <p style={{ textAlign: 'center', marginTop: '20px' }}>Customer Signature ...........................</p>
+                    <p style={{ textAlign: 'center', marginTop: '20px', fontWeight: '900', fontSize: '14px'}}> ..................................... Customer Signature</p>
                     <p style={{ textAlign: 'center', marginTop: '20px' }}>Thank you for your business!</p>
                 </div>
             </div>

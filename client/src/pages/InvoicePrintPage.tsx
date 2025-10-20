@@ -174,15 +174,13 @@ const InvoicePrintPage: React.FC = () => {
         </div>
 
         <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                    <p style={{ textAlign: 'center', marginTop: '20px' }}>TERMS & CONDITIONS</p>
-                    <p style={{ textAlign: 'center', marginTop: '20px' }}>1. 3 Months warranty for each and everyjob, excluding the Crankshaft & Overheatings.</p>
-                    <p style={{ textAlign: 'center', marginTop: '20px' }}>2. After 3 Months the company is not responsible for any goods!</p>
-                    <p style={{ textAlign: 'center', marginTop: '20px' }}>3. After 3 months the company has the right to sell unclaimed finished work to cover the loss</p>
-                    <br />
-                    <br />
-                    <br />
-                    <p style={{ textAlign: 'center', marginTop: '20px' }}>Customer Signature ...........................</p>
-                    <p style={{ textAlign: 'center', marginTop: '20px' }}>Thank you for your business!</p>
+                    <img src={logo} alt="Company Logo" style={{ width: '60px', margin: '0 auto' }} />
+                                        <h2 style={{ textAlign: 'center', margin: '0', fontWeight: '900', fontSize: '16px'}}><span style={{fontSize: '14px'}}>DA</span> MASIH MOTOR ENGINEERING</h2>
+                                        <p style={{ textAlign: 'center', margin: '0' }}>409 Rotweiller Road, Mayibuye-Tembisa</p>
+                                        <p style={{ textAlign: 'center', margin: '0' }}>Tel: 081 527 6080 / 010 335 0492</p>
+                                        <p style={{ textAlign: 'center', margin: '0' }}>www.masihmotoreng.co.za</p>
+                                        <hr style={{ borderTop: '1px dashed black', margin: '10px 0' }} />
+                                        <h1 className="text-lg font-bold">Job Card #{job.id}</h1>
                 </div>
       </div>
     </div>
