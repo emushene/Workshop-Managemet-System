@@ -89,10 +89,9 @@ const InvoicePrintPage: React.FC = () => {
         <div className="text-center mb-4">
                     <img src={logo} alt="Company Logo" style={{ width: '60px', margin: '0 auto' }} />
                     <h2 style={{ textAlign: 'center', margin: '0', fontWeight: '900', fontSize: '16px'}}><span style={{fontSize: '14px'}}>DA</span> MASIH MOTOR ENGINEERING</h2>
-                    <p style={{ textAlign: 'center', margin: '0' }}>409 Rotweiller Road, Mayibuye-Tembisa</p>
-                    <p style={{ textAlign: 'center', margin: '0' }}>Tel: 081 527 6080 / 010 335 0492</p>
-                    <p style={{ textAlign: 'center', margin: '0' }}>www.masihmotoreng.co.za</p>
-                    <hr style={{ borderTop: '1px dashed black', margin: '10px 0' }} />
+                    <p style={{ textAlign: 'center', margin: '0', fontSize: '12px', fontWeight: '900'}}>409 Rotweiller Road, Mayibuye-Tembisa</p>
+                    <p style={{ textAlign: 'center', margin: '0', fontSize: '12px', fontWeight: '900'}}>Tel: 081 527 6080 / 010 335 0492</p>
+                                        <hr style={{ borderTop: '1px dashed black', margin: '10px 0' }} />
                     <h1 className="text-lg font-bold">Invoice #{invoice.id}</h1>
                 </div>
 

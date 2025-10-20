@@ -38,7 +38,7 @@ app.use('/api/vehicles', vehicleRoutes);
 
 // Serve frontend in production
 if (process.env.NODE_ENV === 'production') {
-    const clientBuildPath = path.join(__dirname, '..', '..', 'client', 'dist');
+    const clientBuildPath = path.join(__dirname, '..', 'public');
     app.use(express.static(clientBuildPath));
 
     // The "catchall" handler for client-side routing

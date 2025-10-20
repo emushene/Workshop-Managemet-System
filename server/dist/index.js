@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
+const path_1 = __importDefault(require("path"));
 const setupDatabase_1 = __importDefault(require("./setupDatabase"));
 // Run database setup
 (0, setupDatabase_1.default)();
@@ -33,10 +34,23 @@ app.use('/api/pos', posRoutes_1.default);
 app.use('/api/sales', salesRoutes_1.default);
 app.use('/api/service-item-parts', serviceItemPartsRoutes_1.default);
 app.use('/api/vehicles', vehicleRoutes_1.default);
-// Root route
-app.get('/', (req, res) => {
-    res.send('API is running...');
-});
+// Serve frontend in production
+if (process.env.NODE_ENV === 'production') {
+    const clientBuildPath = path_1.default.join(__dirname, '..', 'public');
+    app.use(express_1.default.static(clientBuildPath));
+    // The "catchall" handler for client-side routing
+    app.get('*', (req, res) => {
+        if (!req.path.startsWith('/api/')) {
+            res.sendFile(path_1.default.join(clientBuildPath, 'index.html'));
+        }
+    });
+}
+else {
+    // Root route for development
+    app.get('/', (req, res) => {
+        res.send('API is running in development mode...');
+    });
+}
 // Start the server
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
