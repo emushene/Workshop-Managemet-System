@@ -177,18 +177,9 @@ const JobCardPrintPage: React.FC = () => {
                     <p className="text-xs">{job.technicianNotes || 'N/A'}</p>
                 </div>
 
-                
+             
 
-                <div className="mt-4">
-                    <table style={{ width: '100%', fontSize: '12px' }}>
-                        <tfoot>
-                            <tr>
-                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>Services Total:</td>
-                                <td style={{ textAlign: 'right' }}>{servicesTotal.toFixed(2)}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
+          
 
                 <div style={{ textAlign: 'center', marginTop: '20px' }}>
                     <p style={{ textAlign: 'center', marginTop: '20px', textDecoration: 'bold' }}>TERMS & CONDITIONS</p>
