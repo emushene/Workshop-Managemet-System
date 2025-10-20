@@ -155,7 +155,7 @@ const JobCardPrintPage: React.FC = () => {
                 <div className="mb-4 border-b border-dashed pb-2">
                     <h3 className="font-bold text-xs mb-1">Work To Be Done:</h3>
                     {job.services && job.services.length > 0 ? (
-                        <div>
+                        <div className='mr-4'>
                             {job.services.map((service: any, index: number) => (
                                 <div key={service.id} className={index > 0 ? 'mt-3 pt-3 border-t border-dashed' : ''}>
                                     <h4 className="font-bold">{service.category}</h4>
