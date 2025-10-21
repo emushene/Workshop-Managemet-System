@@ -83,6 +83,7 @@ router.post('/finalize-job', async (req: express.Request, res: express.Response)
     });
 
   } catch (error: any) {
+    console.error('Error in /payments route:', error);
     res.status(500).json({ "error": error.message });
   }
 });
@@ -98,8 +99,11 @@ router.post('/payments', async (req: express.Request, res: express.Response) => 
   try {
     // Fetch invoice details
     const invoice: any = await new Promise((resolve, reject) => {
-      db.get("SELECT * FROM Invoices WHERE jobId = ?", [invoiceId], (err: Error, row: any) => {
-        if (err) reject(err);
+      db.get("SELECT * FROM Invoices WHERE id = ?", [invoiceId], (err: Error, row: any) => {
+        if (err) {
+          console.error('Error fetching invoice:', err);
+          reject(err);
+        }
         else resolve(row);
       });
     });
@@ -116,7 +120,10 @@ router.post('/payments', async (req: express.Request, res: express.Response) => 
       db.run('INSERT INTO Payments (invoiceId, amount, paymentDate, paymentMethod, type, notes) VALUES (?, ?, ?, ?, ?, ?)',
         [invoiceId, amountInCents, paymentDate, paymentMethod, type, notes],
         function (this: any, err: Error) {
-          if (err) reject(err);
+          if (err) {
+            console.error('Error creating payment:', err);
+            reject(err);
+          }
           else resolve({ id: this.lastID, invoiceId, amount: amountInCents, paymentDate, paymentMethod, type, notes });
         }
       );
@@ -126,7 +133,10 @@ router.post('/payments', async (req: express.Request, res: express.Response) => 
     const paymentsSql = `SELECT SUM(amount) as totalPaid FROM Payments WHERE invoiceId = ?`;
     const paymentInfo: any = await new Promise((resolve, reject) => {
       db.get(paymentsSql, [invoiceId], (err, row) => {
-        if (err) reject(err);
+        if (err) {
+          console.error('Error getting total paid amount:', err);
+          reject(err);
+        }
         resolve(row);
       });
     });
@@ -137,8 +147,11 @@ router.post('/payments', async (req: express.Request, res: express.Response) => 
     const newStatus = newAmountPaid >= finalTotal ? 'Paid' : 'Partially Paid';
 
     await new Promise((resolve, reject) => {
-      db.run('UPDATE Invoices SET status = ? WHERE jobId = ?', [newStatus, invoiceId], function (this: any, err: Error) {
-        if (err) reject(err);
+      db.run('UPDATE Invoices SET status = ? WHERE id = ?', [newStatus, invoiceId], function (this: any, err: Error) {
+        if (err) {
+          console.error('Error updating invoice status:', err);
+          reject(err);
+        }
         else resolve(this.changes);
       });
     });
@@ -151,6 +164,7 @@ router.post('/payments', async (req: express.Request, res: express.Response) => 
     });
 
   } catch (error: any) {
+    console.error('Error in /payments route:', error);
     res.status(500).json({ "error": error.message });
   }
 });

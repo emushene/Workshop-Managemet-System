@@ -1,12 +1,9 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const sqlite3_1 = __importDefault(require("sqlite3"));
-const path_1 = __importDefault(require("path"));
-const DBSOURCE = path_1.default.join(__dirname, '..', 'database.sqlite');
-const db = new sqlite3_1.default.Database(DBSOURCE, (err) => {
+var sqlite3 = require("sqlite3");
+var path = require("path");
+var DBSOURCE = path.join(__dirname, '..', 'database.sqlite');
+var db = new sqlite3.Database(DBSOURCE, function (err) {
     if (err) {
         // Cannot open database
         console.error(err.message);
@@ -14,7 +11,7 @@ const db = new sqlite3_1.default.Database(DBSOURCE, (err) => {
     }
     console.log('Connected to the SQLite database.');
     // Enable foreign key support
-    db.run('PRAGMA foreign_keys = ON;', (err) => {
+    db.run('PRAGMA foreign_keys = ON;', function (err) {
         if (err) {
             console.error('Failed to enable foreign keys:', err.message);
         }

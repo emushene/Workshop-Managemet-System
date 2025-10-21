@@ -12,6 +12,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, invoiceId,
   const [payments, setPayments] = useState<{ method: string; amount: number }[]>([]);
   const [currentMethod, setCurrentMethod] = useState('Cash');
   const [currentAmount, setCurrentAmount] = useState<string>('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -35,37 +36,61 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, invoiceId,
 
   const handleFinalize = async () => {
     if (remainingBalance > 0) return alert('Remaining balance must be zero to finalize');
+    setIsProcessing(true);
+    let allPaymentsSuccessful = true;
     try {
       for (const p of payments) {
-        await onPaymentSuccess({
-          invoiceId,
-          amount: p.amount,
-          paymentMethod: p.method,
-          type: 'Full Payment',
-        });
+        try {
+          await onPaymentSuccess({
+            invoiceId,
+            amount: p.amount,
+            paymentMethod: p.method,
+            type: 'Full Payment',
+          });
+        } catch (err: any) {
+          console.error(`Failed to process payment for ${p.method} with amount ${p.amount}:`, err);
+          alert(`Failed to process payment for ${p.method}. Please try again.`);
+          allPaymentsSuccessful = false;
+        }
       }
-      onClose();
+      if (allPaymentsSuccessful) {
+        onClose();
+      }
     } catch (err: any) {
       console.error(err);
       alert('Payment failed');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   const handlePartialPayment = async () => {
     if (totalPaid <= 0) return alert('Add at least one payment');
+    setIsProcessing(true);
+    let allPaymentsSuccessful = true;
     try {
       for (const p of payments) {
-        await onPaymentSuccess({
-          invoiceId,
-          amount: p.amount,
-          paymentMethod: p.method,
-          type: 'Partial Payment',
-        });
+        try {
+          await onPaymentSuccess({
+            invoiceId,
+            amount: p.amount,
+            paymentMethod: p.method,
+            type: 'Partial Payment',
+          });
+        } catch (err: any) {
+          console.error(`Failed to process partial payment for ${p.method} with amount ${p.amount}:`, err);
+          alert(`Failed to process partial payment for ${p.method}. Please try again.`);
+          allPaymentsSuccessful = false;
+        }
       }
-      onClose();
+      if (allPaymentsSuccessful) {
+        onClose();
+      }
     } catch (err: any) {
       console.error(err);
       alert('Partial payment failed');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -153,17 +178,18 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, invoiceId,
             {totalPaid > 0 && remainingBalance > 0 && (
               <button
                 onClick={handlePartialPayment}
-                className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded"
+                disabled={isProcessing}
+                className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Confirm Partial Payment
+                {isProcessing ? 'Processing...' : 'Confirm Partial Payment'}
               </button>
             )}
             <button
               onClick={handleFinalize}
-              disabled={remainingBalance > 0}
+              disabled={remainingBalance > 0 || isProcessing}
               className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Finalize Sale
+              {isProcessing ? 'Processing...' : 'Finalize Sale'}
             </button>
           </div>
         </div>

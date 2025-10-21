@@ -1,5 +1,5 @@
-import sqlite3 from 'sqlite3';
-import path from 'path';
+import * as sqlite3 from 'sqlite3';
+import * as path from 'path';
 
 const DBSOURCE = path.join(__dirname, '..', 'database.sqlite');
 
