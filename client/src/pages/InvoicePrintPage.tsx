@@ -116,7 +116,7 @@ const InvoicePrintPage: React.FC = () => {
         </div>
 
         {/* Items Table */}
-        <div className="mb-4 border-b border-dashed pb-2">
+        <div className="mb-4 border-b border-dashed pb-2 mr-4">
           <h3 className="font-bold text-xs mb-1">Items:</h3>
           <table style={{ width: '100%', fontSize: '12px' }}>
             <thead>
@@ -155,7 +155,7 @@ const InvoicePrintPage: React.FC = () => {
         </div>
 
         {/* Totals */}
-        <div className="text-right mt-4 mr-6">
+        <div className="text-right mt-4 mr-4">
           <p>
             <strong>Subtotal:</strong> {((invoice.totalAmount ?? 0) / 100).toFixed(2)}
           </p>
@@ -186,7 +186,7 @@ const InvoicePrintPage: React.FC = () => {
             <br />
             <br />
             <br />
-            <p style={{ textAlign: 'center', marginTop: '20px', fontWeight: '900', fontSize: '14px'}}> ..................................... Customer Signature</p>
+            <p style={{ textAlign: 'center', marginTop: '20px', fontWeight: '900', fontSize: '14px'}}> ............................... Customer Signature</p>
             <p style={{ textAlign: 'center', marginTop: '20px' }}>Thank you for your business!</p>
         </div>
 
